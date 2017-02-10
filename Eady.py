@@ -75,7 +75,6 @@ print 'wprime at z=0 is:', wprime.subs(z,0).subs(t,1).subs(x, Xlength/2.).evalf(
 #Initialise matrix of zeros for vprime values in x-z plane
 vprime_matrix = np.zeros((height,Xlength))
 
-
 #Evaluate values for vprime matrix
 for i in range(0, height, 1):
     for j in range(0, Xlength, 1):
