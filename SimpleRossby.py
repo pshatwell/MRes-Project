@@ -1,6 +1,6 @@
 import numpy as np
 from sympy import *
-from RossbyParams import *
+from RossbyInfo import *
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
