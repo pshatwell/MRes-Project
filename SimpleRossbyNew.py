@@ -34,7 +34,7 @@ print 'c*T is:', c*T
 def main():
     xvalues = np.linspace(0,3,100)
     yvalues = np.linspace(0,1,100) #Channel width in y direction is 1*L
-    tvalues = np.linspace(0,2,100)
+    tvalues = np.linspace(0,1,100)
 
     #print 'xvalues are:', xvalues
 
@@ -66,6 +66,7 @@ def main():
     #CREATE ARRAY FOR UPRIME VALUES
     uprime_nd = np.zeros((ylength,xlength,tlength)) #Note x and y have switched so plotted output is oriented correctly
 
+    #Indices in array go [y,x,t]
     for i in range(0, ylength, 1):
         for j in range(0, xlength, 1):
             for m in range(0, tlength, 1):
@@ -86,6 +87,7 @@ def main():
     #CREATE ARRAY FOR VPRIME VALUES
     vprime_nd = np.zeros((ylength,xlength,tlength))
 
+    #Indices in array go [y,x,t]
     for i in range(0, ylength, 1): #Note x and y have switched so plotted output is oriented correctly
         for j in range(0, xlength, 1):
             for m in range(0, tlength, 1):
@@ -104,6 +106,13 @@ def main():
     print 'vprime_nd at y = 0 is:', vprime_nd[0,2,2]
     print 'vprime_nd at y = L is:', vprime_nd[-1,2,2]
 
+    '''
+    #Try to find streamlines by dividing v over u
+    voveru = np.divide(vprime_nd, uprime_nd)
+    print 'type of voveru is:', type(voveru)
+    print 'shape of voveru is:', voveru.shape
+    '''
+
 ###############################################################################################
 
     #DEFINE ODE TO INTEGRATE FOR PARCEL TRAJECTORIES
@@ -114,39 +123,72 @@ def main():
 
     #TRY SOLVING THIS ANALYTICALLY BY HAND AND PLOTTING THAT
 
-    #CURRENTLY SOLVING UPRIME AND VPRIME WITH AMPLITUDES = 1. T = 100.
+    #CURRENTLY SOLVING UPRIME AND VPRIME WITH AMPLITUDES = 1.
     def velocitynd(s,t):
         x, y = s
         dsdt = [uprime(x=x,y=y,t=t), vprime(x=x,y=y,t=t)]
         #dsdt = [testuprime(x=x,y=y,t=t), testvprime(x=x,y=y,t=t)]
         return dsdt
 
-    t=np.linspace(0,10,200)
+    t=np.linspace(0,0.3,500)
 
-    s0_a = [0.5, 0.5]
-    s0_b = [0.3, 0.3]
-    #s0_c = [0.5, 0.5]
+    s0_a = [0, 0.5]
+    s0_b = [0, 0.4999]
+
+    print 'trajectory a initial x position:', A_und*L*s0_a[0]
+    print 'trajectory a initial y position:', A_vnd*L*s0_a[1]
+
+    print 'trajectory b initial x position:', A_und*L*s0_b[0]
+    print 'trajectory b initial y position:', A_vnd*L*s0_b[1]
+
+    print 'initial separation is:', np.sqrt((A_und*L*s0_a[0]-A_und*L*s0_b[0])**2 + (A_vnd*L*s0_a[1]-A_vnd*L*s0_b[1])**2)
 
     sol_a = odeint(velocitynd, s0_a, t, mxstep=1000000)
     sol_b = odeint(velocitynd, s0_b, t, mxstep=1000000)
-    #sol_c = odeint(velocitynd, s0_c, t)
 
 ###############################################################################################
 
+    #ATTEMPT TO TRANSFORM TRAJECTORIES TO EDDY REFERENCE FRAME?
+
+    shift_a = np.array(t*(uprime(x=sol_a[:,0], y=sol_a[:,1], t=t), vprime(x=sol_a[:,0], y=sol_a[:,1], t=t)))
+
+    print 'shape of sol_a is:', sol_a.shape
+    print 'shape of shift is:', shift_a.shape
+    print 'shape of transposed shift is:', shift_a.transpose().shape
+
+    #N.B. need to transpose to agree with shape of sol_a array
+    rel_sol_a = sol_a - shift_a.transpose() #new parcel trajectory relative to WHAT???
+
+
+    shift_b = np.array(t*(uprime(x=sol_b[:,0], y=sol_b[:,1], t=t), vprime(x=sol_b[:,0], y=sol_b[:,1], t=t)))
+    rel_sol_b = sol_b - shift_b.transpose()
+
+    print 'trajectory a final x position:', A_und*L*rel_sol_a[-1,0]
+    print 'trajectory a final y position:', A_vnd*L*rel_sol_a[-1,1]
+
+    print 'trajectory b final x position:', A_und*L*rel_sol_b[-1,0]
+    print 'trajectory b final y position:', A_vnd*L*rel_sol_b[-1,1]
+
+    print 'final separation is:', np.sqrt((A_und*L*rel_sol_a[-1,0]-A_und*L*rel_sol_b[-1,0])**2 + (A_vnd*L*rel_sol_a[-1,1]-A_vnd*L*rel_sol_b[-1,1])**2)
+
+###############################################################################################
+
+    #DO ALL THE PLOTTING
+
     fig1 = plt.figure()
 
-    ax1=fig1.add_subplot(311)
-    ax1.matshow(psiprime_nd[:,:,0], origin='lower')
+    ax1=fig1.add_subplot(131)
+    ax1.imshow(psiprime_nd[:,:,0], origin='lower')
 
-    ax2 = fig1.add_subplot(312)
-    ax2.matshow(uprime_nd[:,:,0], origin='lower')
+    ax2 = fig1.add_subplot(132)
+    ax2.imshow(uprime_nd[:,:,0], origin='lower')
 
     #print 'uprime_nd[:,:,0] is:', uprime_nd[:, : ,0]
     #print 'uprime_nd[:,0,:] is:', uprime_nd[:, 0, :]
     #print 'uprime_nd[0,:,:] is:', uprime_nd[0, :, :]
 
-    ax3 = fig1.add_subplot(313)
-    ax3.matshow(vprime_nd[:,:,0], origin='lower')
+    ax3 = fig1.add_subplot(133)
+    ax3.imshow(vprime_nd[:,:,0], origin='lower')
 
     #print 'vprime_nd[:,:,0] is:', vprime_nd[:, : ,0]
     #print 'vprime_nd[:,0,:] is:', vprime_nd[:, 0, :]
@@ -154,10 +196,27 @@ def main():
 
     fig2 = plt.figure()
     ax4 = fig2.add_subplot(111)
-    ax4.plot(sol_a[:,0], sol_a[:,1], label='trajectory a')
-    ax4.plot(sol_b[:,0], sol_b[:,1], label='trajectory b')
-    #ax4.plot(sol_c[:,0], sol_c[:,1], label='trajectory c')
+
+    #MULTIPLYING SOLUTIONS BY THE VELOCITY AMPLITUDES AND BY L. MAKE SURE THIS IS CORRECT.
+    ax4.plot(A_und*L*sol_a[:,0], A_vnd*L*sol_a[:,1], label='trajectory a')
+    ax4.plot(A_und*L*sol_b[:,0], A_vnd*L*sol_b[:,1], label='trajectory b')
+
+    ax4.plot(A_und*L*rel_sol_a[:,0], A_vnd*L*rel_sol_a[:,1], color='black', label ='trajectory a in different frame')
+    ax4.plot(A_und*L*rel_sol_b[:,0], A_vnd*L*rel_sol_b[:,1], color='red', label ='trajectory b in different frame')
+
+    #ax4.imshow(psiprime_nd[:,:,50], origin='lower', extent=[-3*L,0,0,L])
+
     plt.legend(loc='best')
+
+    '''
+    #Plot vprime over uprime
+    fig3 = plt.figure()
+    ax5 = fig3.add_subplot(111)
+    ax5.set_xlabel('x')
+    ax5.set_ylabel('y')
+    ax5.set_title('v over u')
+    voverucontour = plt.contour(voveru[:,:,0], origin = 'lower')
+    '''
 
     plt.show()
 
