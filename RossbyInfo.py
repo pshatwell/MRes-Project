@@ -6,7 +6,6 @@ import numpy as np
 L = 1e6 #(m) typical length scale
 f0 = 1e-4 #(s^-1) Coriolis parameter
 T = 1./f0 #(s) typical time scale
-#T = 1e5
 k = 1e-5 #(m^-1) horizontal wavenumber
 a = 3e4 #(m) deformation radius
 psi0 = 3e4 #(m^2*s^-1) wave amplitude

@@ -25,7 +25,8 @@ print 'k*c*T is:', k*c*T
 
 ###############################################################################################
 
-def main():
+def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTORIES
+
     #Define dimensions of arrays
     xvalues = np.linspace(0,2,200)
     yvalues = np.linspace(0,1,100) #Channel width in y direction is 1*L
@@ -90,18 +91,18 @@ def main():
     #s0_a = [0.47, 0.1] #oscillatory trajectory
     #s0_e = [0.7857, 0.5] #oscillatory trajectory
 
-    p=0.2 #Choose point to determine cluster of initial points for trajectories
+    #CHOOSE THE POINT P TO DETERMINE CLUSTER OF INITIAL POINTS FOR TRAJECTORIES
 
-    #Create cluster of 9 points to evolve in time
-    s0_a = [p, p]
-    s0_b = [p, p+0.1]
-    s0_c = [p, p+0.2]
-    s0_d = [p+0.1, p]
-    s0_e = [p+0.1, p+0.1]
-    s0_f = [p+0.1, p+0.2]
-    s0_g = [p+0.2, p]
-    s0_h = [p+0.2, p+0.1]
-    s0_i = [p+0.2, p+0.2]
+    #Create 3x3 grid of 9 points to evolve in time
+    s0_a = [p, p/2.]
+    s0_b = [p-0.1, p/2.]
+    s0_c = [p+0.1, p/2.]
+    s0_d = [p, (p/2.)+0.1]
+    s0_e = [p-0.1, (p/2.)+0.1]
+    s0_f = [p+0.1, (p/2.)+0.1]
+    s0_g = [p, (p/2.)-0.1]
+    s0_h = [p-0.1, (p/2.)-0.1]
+    s0_i = [p+0.1, (p/2.)-0.1]
 
     sol_a = odeint(velocity, s0_a, t)
     sol_b = odeint(velocity, s0_b, t)
@@ -131,6 +132,7 @@ def main():
 ###############################################################################################
 
     #DO ALL THE PLOTTING
+    #Plot streamfunction and velocity fields at t=time
 
     fig1 = plt.figure()
     plt.set_cmap('inferno') #Choose colour map
@@ -158,6 +160,9 @@ def main():
     ax3.set_xlabel('x (L)')
     ax3.set_ylabel('y (L)')
 
+###############################################################################################
+
+    #Plot parcel trajectories
 
     fig2 = plt.figure()
     ax4 = fig2.add_subplot(111)
@@ -174,13 +179,18 @@ def main():
     ax4.plot(sol_h[:,0], sol_h[:,1], linewidth=1.5, label='h')
     ax4.plot(sol_i[:,0], sol_i[:,1], linewidth=1.5, label='i')
 
-    ax4.plot(rel_sol_a[:,0], rel_sol_a[:,1], color='black', label ='a in RW frame')
+    #ax4.plot(rel_sol_a[:,0], rel_sol_a[:,1], color='black', label ='a in RW frame')
 
     #Overlay initial streamfunction to see if trajectories make sense.
     ax4.imshow(psiprime_matrix[:,:], origin='lower', extent=[0,2,0,1], aspect='auto')
-
     #plt.legend(loc='upper left', bbox_to_anchor=(0, 1))
 
-    plt.show()
+    plt.savefig('figures/trajectories/RW_%s.pdf' %str(p))
+    plt.close()
 
-main()
+###############################################################################################
+
+pvalues = [i for i in np.arange(0.5,1.5,0.1)]
+
+for i in pvalues:
+    main(p=i)
