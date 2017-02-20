@@ -13,8 +13,6 @@ beta = 3e-11 #(m^-1*s^-1) latitudinal variation of Coriolis parameter
 c = -beta*(a**2) #(m*s^-1) phase speed of wave
 wavelength = (2*np.pi)/k #horizontal wavelength of wave
 
-#WHAT SHOULD THE SCALINGS BE FOR THE VELOCITY PERTURBATIONS??
-#DIMENSIONAL OR NON-DIMENSIONAL? I INTEGRATE WITH RESPECT TO NON-DIMENSIONAL t.
 A_u = (psi0*np.pi)/L #amplitude of uprime
 A_v = psi0*k #amplitude of vprime
 
@@ -27,11 +25,11 @@ def psiprime(x,y,t):
     return psi0*np.cos(k*L*x - k*c*T*t)*np.sin(np.pi*y)
 
 def uprime(x,y,t): #zonal velocity, equal to -psiprime_y
-    return -A_u*np.cos(k*L*x - k*c*T*t)*np.cos(np.pi*y)
+    return -A_und*np.cos(k*L*x - k*c*T*t)*np.cos(np.pi*y)
     #return -np.cos(k*L*x - k*c*T*t)*np.cos(np.pi*y)
 
 def vprime(x,y,t): #meridional velocity, equal to psiprime_x
-    return -A_v*np.sin(k*L*x - k*c*T*t)*np.sin(np.pi*y)
+    return -A_vnd*np.sin(k*L*x - k*c*T*t)*np.sin(np.pi*y)
     #return -np.sin(k*L*x - k*c*T*t)*np.sin(np.pi*y)
 
 def testuprime(x,y,t):

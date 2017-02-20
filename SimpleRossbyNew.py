@@ -86,7 +86,7 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
         #dsdt = [testuprime(x=x,y=y,t=t), testvprime(x=x,y=y,t=t)]
         return dsdt
 
-    t=np.linspace(0,100,200)
+    t=np.linspace(0,2000,2000)
 
     #s0_a = [0.47, 0.1] #oscillatory trajectory
     #s0_e = [0.7857, 0.5] #oscillatory trajectory
@@ -122,12 +122,20 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
 
     #TRANSFORM TRAJECTORIES TO WAVE REFERENCE FRAME
     shift = np.zeros_like(sol_a)
-    shift[:,0] = c*t
+    shift[:,0] = (c*t)/(L*f0) #to make non-dimensional
 
     print 'shape of sol_a is:', sol_a.shape
     print 'shape of shift is:', shift.shape
 
     rel_sol_a = sol_a - shift #new parcel trajectory relative to Rossby wave
+    rel_sol_b = sol_b - shift
+    rel_sol_c = sol_c - shift
+    rel_sol_d = sol_d - shift
+    rel_sol_e = sol_e - shift
+    rel_sol_f = sol_f - shift
+    rel_sol_g = sol_g - shift
+    rel_sol_h = sol_h - shift
+    rel_sol_i = sol_i - shift
 
 ###############################################################################################
 
@@ -160,12 +168,13 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
     ax3.set_xlabel('x (L)')
     ax3.set_ylabel('y (L)')
 
+    #plt.savefig('figures/initialRWconditions.pdf')
+
 ###############################################################################################
 
-    #Plot parcel trajectories
-
+    #Plot parcel trajectories in Earth frame
     fig2 = plt.figure()
-    ax4 = fig2.add_subplot(111)
+    ax4 = fig2.add_subplot(211)
     ax4.set_xlabel('x (L)')
     ax4.set_ylabel('y (L)')
 
@@ -179,18 +188,43 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
     ax4.plot(sol_h[:,0], sol_h[:,1], linewidth=1.5, label='h')
     ax4.plot(sol_i[:,0], sol_i[:,1], linewidth=1.5, label='i')
 
-    #ax4.plot(rel_sol_a[:,0], rel_sol_a[:,1], color='black', label ='a in RW frame')
-
     #Overlay initial streamfunction to see if trajectories make sense.
     ax4.imshow(psiprime_matrix[:,:], origin='lower', extent=[0,2,0,1], aspect='auto')
-    #plt.legend(loc='upper left', bbox_to_anchor=(0, 1))
 
-    plt.savefig('figures/trajectories/RW_%s.pdf' %str(p))
-    plt.close()
+    #plt.legend(loc='upper left', bbox_to_anchor=(0, 1))
 
 ###############################################################################################
 
-pvalues = [i for i in np.arange(0.5,1.5,0.1)]
+    #Plot parcel trajectories in Rossby wave frame
+    ax5 = fig2.add_subplot(212)
+    ax5.set_xlabel('x (L)')
+    ax5.set_ylabel('y (L)')
 
-for i in pvalues:
-    main(p=i)
+    ax5.plot(rel_sol_a[:,0], rel_sol_a[:,1], label ='a_RW')
+    ax5.plot(rel_sol_b[:,0], rel_sol_b[:,1], label ='b_RW')
+    ax5.plot(rel_sol_c[:,0], rel_sol_c[:,1], label ='c_RW')
+    ax5.plot(rel_sol_d[:,0], rel_sol_d[:,1], label ='d_RW')
+    ax5.plot(rel_sol_e[:,0], rel_sol_e[:,1], label ='e_RW')
+    ax5.plot(rel_sol_f[:,0], rel_sol_f[:,1], label ='e_RW')
+    ax5.plot(rel_sol_g[:,0], rel_sol_g[:,1], label ='e_RW')
+    ax5.plot(rel_sol_h[:,0], rel_sol_h[:,1], label ='e_RW')
+    ax5.plot(rel_sol_i[:,0], rel_sol_i[:,1], label ='e_RW')
+
+    ax5.imshow(psiprime_matrix[:,:], origin='lower', extent=[0,2,0,1], aspect='auto')
+
+    #plt.legend(loc='upper left', bbox_to_anchor=(0, 1))
+
+    #plt.savefig('figures/RWtrajectories/RW_pvalue%s.pdf' %str(p))
+
+    #plt.close()
+
+    plt.show()
+
+###############################################################################################
+
+#pvalues = [i for i in np.arange(0.5,1.5,0.01)]
+
+#for i in pvalues:
+    #main(p=i)
+
+main(p=0.8)
