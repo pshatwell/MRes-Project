@@ -1,6 +1,7 @@
+
 import numpy as np
 from sympy import *
-from RossbyInfo import *
+from RWinfo import *
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
@@ -14,6 +15,9 @@ print 'horizontal wavelength (m) is:', wavelength
 print 'amplitude of psiprime (in m^2*s^(-1)) is:', psi0
 print 'amplitude of uprime (in ms^(-1)), psi0*pi/L, is:', (psi0*np.pi)/L #amplitude of uprime
 print 'amplitude of vprime (in ms^(-1)), psi0*k, is:', psi0*k #amplitude of vprime
+
+print 'u/c is:', A_u/c
+print 'v/c is:', A_v/c
 
 print 'k is:', k
 print 'L is:', L

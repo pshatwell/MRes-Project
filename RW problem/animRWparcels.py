@@ -1,12 +1,14 @@
 import numpy as np
 from sympy import *
-from RossbyInfo import *
+from RWinfo import *
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import matplotlib.animation as anim
 plt.rcParams['animation.ffmpeg_path'] = '/usr/local/bin/ffmpeg'
 
 ###############################################################################################
+#CHOOSE THE POINT P TO DETERMINE CLUSTER OF INITIAL POINTS FOR TRAJECTORIES
+p=0.9
 
 #Define dimensions of arrays
 xvalues = np.linspace(0,2,200)
@@ -37,9 +39,6 @@ def velocity(s,t):
     return dsdt
 
 t=np.linspace(0,2000,250)
-
-#CHOOSE THE POINT P TO DETERMINE CLUSTER OF INITIAL POINTS FOR TRAJECTORIES
-p=0.6
 
 #Create 3x3 grid of 9 points to evolve in time
 s0_a = [p, p/2.]
