@@ -227,4 +227,4 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
 #for i in pvalues:
     #main(p=i)
 
-main(p=0.8)
+main(p=0.6)

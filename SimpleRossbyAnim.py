@@ -26,6 +26,8 @@ for i in range(0, ylength, 1):
     for j in range(0, xlength, 1):
         psiprime_matrix[i,j] = psiprime(x=xvalues[j], y=yvalues[i], t=time)
 
+print 'Array for psiprime made.'
+
 ###############################################################################################
 
 #DEFINE ODE TO INTEGRATE FOR PARCEL TRAJECTORIES
@@ -34,10 +36,10 @@ def velocity(s,t):
     dsdt = [uprime(x=x,y=y,t=t), vprime(x=x,y=y,t=t)]
     return dsdt
 
-t=np.linspace(0,2000,2000)
+t=np.linspace(0,2000,250)
 
 #CHOOSE THE POINT P TO DETERMINE CLUSTER OF INITIAL POINTS FOR TRAJECTORIES
-p=0.8
+p=0.6
 
 #Create 3x3 grid of 9 points to evolve in time
 s0_a = [p, p/2.]
@@ -76,11 +78,14 @@ rel_sol_g = sol_g - shift
 rel_sol_h = sol_h - shift
 rel_sol_i = sol_i - shift
 
+print 'Trajectory solutions found.'
+
 ###############################################################################################
 
 #Animate the trajectories
 
 fig = plt.figure()
+plt.set_cmap('inferno')
 ax1 = fig.add_subplot(211)
 ax2 = fig.add_subplot(212)
 
@@ -88,11 +93,13 @@ ax1.set_xlim([0,2])
 ax1.set_ylim([0,1])
 ax1.set_xlabel('x (L)')
 ax1.set_ylabel('y (L)')
+#ax1.imshow(psiprime_matrix[:,:], origin='lower', extent=[0,2,0,1], aspect='auto')
 
 ax2.set_xlim([0,2])
 ax2.set_ylim([0,1])
 ax2.set_xlabel('x (L)')
 ax2.set_ylabel('y (L)')
+ax2.imshow(psiprime_matrix[:,:], origin='lower', extent=[0,2,0,1], aspect='auto')
 
 line_a1, = ax1.plot([], [], lw=1.5)
 line_b1, = ax1.plot([], [], lw=1.5)
@@ -259,6 +266,10 @@ def parcelanimate(i):
 
     return line_a1, line_a2, line_b1, line_b2, line_c1, line_c2, line_d1, line_d2, line_e1, line_e2, line_f1, line_f2, line_g1, line_g2, line_h1, line_h2, line_i1, line_i2,
 
-parcelanim = anim.FuncAnimation(fig, parcelanimate, init_func=init, frames=np.arange(0,len(t)-1), interval = 100, blit=False)
+print 'Start making animation:'
 
-parcelanim.save('movies/parcelbundle.mp4', fps=200, bitrate=-1, codec='libx264', writer='ffmpeg')
+parcelanim = anim.FuncAnimation(fig, parcelanimate, init_func=init, frames=np.arange(0,len(t)-1), interval = 100, blit=True)
+
+parcelanim.save('movies/parcelbundle_pvalue%s.mp4' %str(p), fps=25, bitrate=-1, codec='libx264', writer='ffmpeg')
+
+print 'Animation has been made.'
