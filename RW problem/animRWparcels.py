@@ -7,6 +7,7 @@ import matplotlib.animation as anim
 plt.rcParams['animation.ffmpeg_path'] = '/usr/local/bin/ffmpeg'
 
 ###############################################################################################
+
 #CHOOSE THE POINT P TO DETERMINE CLUSTER OF INITIAL POINTS FOR TRAJECTORIES
 p=0.9
 
@@ -269,6 +270,6 @@ print 'Start making animation:'
 
 parcelanim = anim.FuncAnimation(fig, parcelanimate, init_func=init, frames=np.arange(0,len(t)-1), interval = 100, blit=True)
 
-parcelanim.save('movies/parcelbundle_pvalue%s.mp4' %str(p), fps=25, bitrate=-1, codec='libx264', writer='ffmpeg')
+parcelanim.save('movies/parcelbundle_pvalue%s_cvalue%s.mp4' % (str(p), str(c)), fps=25, bitrate=-1, codec='libx264', writer='ffmpeg')
 
 print 'Animation has been made.'

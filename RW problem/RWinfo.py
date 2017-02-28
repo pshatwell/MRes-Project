@@ -9,11 +9,8 @@ T = 1./f0 #(s) typical time scale
 k = 1e-5 #(m^-1) horizontal wavenumber
 a = 3e4 #(m) deformation radius
 psi0 = 3e4 #(m^2*s^-1) wave amplitude
-#psi0 = 0.2*3e4 #(m^2*s^-1) wave amplitude
-
 beta = 3e-11 #(m^-1*s^-1) latitudinal variation of Coriolis parameter
-c = -beta*(a**2) #(m*s^-1) phase speed of wave
-#c = -0.2*beta*(a**2) #(m*s^-1) phase speed of wave
+c = -2.2*beta*(a**2) #(m*s^-1) phase speed of wave
 
 wavelength = (2*np.pi)/k #horizontal wavelength of wave
 
