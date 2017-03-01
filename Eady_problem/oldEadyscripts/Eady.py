@@ -4,7 +4,10 @@ import matplotlib.pyplot as plt
 from sympy import *
 from scipy.integrate import odeint
 
-from Parameters import *
+from Eadyinfo import *
+
+#THIS IS A FIRST ATTEMPT SCRIPT TO SOLVE EADY PROBLEM. USES SYMPY AND EVERYTHING IS DIMENSIONAL.
+#NO PARCEL TRAJECTORIES HERE.
 
 '''
 Program for plotting solution to Eady problem for most unstable wave - Peter Shatwell 2017
@@ -15,11 +18,19 @@ Program for plotting solution to Eady problem for most unstable wave - Peter Sha
 #xvalues = np.floor(np.arange(0, 1e7, 5e5))
 #zvalues = np.floor(np.arange(-5e3, 5e3, 5e2))
 
-xvalues = np.floor(np.arange(0,1e3*H_R, 5e5))
-zvalues = np.floor(np.arange(-H, H, 5e2))
+#xvalues = np.floor(np.arange(0, 50*H_R, 1e3))
+#zvalues = np.floor(np.arange(-H, H, 200))
+
+xvalues = np.linspace(0,50*H_R, 50)
+zvalues = np.linspace(-H, H, 50)
 
 Xlength = len(xvalues)
 height = len(zvalues)
+
+print 'T is:', T
+print 'H is:', H
+print 'H_R is:', H_R
+print 'H/H_R is:', Hratio
 
 ########################## DEFINE STREAMFUNCTION AND DERIVATIVES ####################################################################
 
@@ -56,7 +67,7 @@ phiprime_zxmatrix = np.zeros((height,Xlength))
 #Evaluate phiprime matrix values
 for i in range(0, height, 1):
     for j in range(0, Xlength, 1):
-        phiprime_zxmatrix[i-1][j-1] = phiprime.subs(x,xvalues[j-1]).subs(z,zvalues[i-1]).subs(t,0).evalf()
+        phiprime_zxmatrix[i][j] = phiprime.subs(x,xvalues[j]).subs(z,zvalues[i]).subs(t,0).evalf()
 
 ########################### FIND VELOCITY PERTURBATIONS FROM STREAMFUNCTION ###################################################################
 
@@ -65,7 +76,12 @@ for i in range(0, height, 1):
 #CHECK EXPRESSION FOR WPRIME. SHOULD USE GILL 12.9.5? THAT'S A BIT HARD TO SOLVE.
 
 vprime = (1./f0)*phiprime_x #meridional perturbation velocity, Gill 12.9.3
-wprime = (1./N**2)*(shear*phiprime_x - phiprime_zt + shear*z*phiprime_zx) #vertical perturbation velocity, Gill 12.9.6 BOUNDARY CONDITION? NEED TO SOLVE 12.9.5?
+wprime = (1./N**2)*(shear*phiprime_x - phiprime_zt - shear*z*phiprime_zx) #vertical perturbation velocity, Gill 12.9.6 BOUNDARY CONDITION? NEED TO SOLVE 12.9.5?
+
+print 'wprime is:', wprime
+print 'phiprime_x is:', phiprime_x
+print 'phiprime_zt is:', phiprime_zt
+print 'phiprime_zx is:', phiprime_zx
 
 print 'wprime at z=0 is:', wprime.subs(z,0).subs(t,1).subs(x, Xlength/2.).evalf()
 
@@ -78,7 +94,7 @@ vprime_matrix = np.zeros((height,Xlength))
 #Evaluate values for vprime matrix
 for i in range(0, height, 1):
     for j in range(0, Xlength, 1):
-        vprime_matrix[i-1][j-1] = vprime.subs(x,xvalues[j-1]).subs(z,zvalues[i-1]).subs(t,0).evalf()
+        vprime_matrix[i][j] = vprime.subs(x,xvalues[j]).subs(z,zvalues[i]).subs(t,0).evalf()
 
 #Initialise matrix of zeros for wprime values in x-z plane
 wprime_matrix = np.zeros((height,Xlength))
@@ -86,9 +102,11 @@ wprime_matrix = np.zeros((height,Xlength))
 #Evaluate values for wprime matrix
 for i in range(0, height, 1):
     for j in range(0, Xlength, 1):
-        wprime_matrix[i-1][j-1] = wprime.subs(x,xvalues[j-1]).subs(z,zvalues[i-1]).subs(t,0).evalf()
+        wprime_matrix[i][j] = wprime.subs(x,xvalues[j]).subs(z,zvalues[i]).subs(t,0).evalf()
 
 woverv = np.divide(wprime_matrix, vprime_matrix)
+
+#print 'wprime is:', wprime_matrix
 
 ########################### PLOTTING ###################################################################
 
@@ -96,13 +114,14 @@ woverv = np.divide(wprime_matrix, vprime_matrix)
 
 #Plot using contourf
 fig1 = plt.figure()
+#plt.set_cmap('inferno')
 
 ax1 = fig1.add_subplot(221)
 ax1.set_xlabel('x (zonal)')
 ax1.set_ylabel('z (height)')
 ax1.set_title('Streamfunction perturbation')
 #ax1.imshow(phiprime_zxmatrix, origin = 'lower')
-phicontour = plt.contourf(phiprime_zxmatrix, origin ='lower')
+phicontour = ax1.contourf(phiprime_zxmatrix, origin ='lower')
 phicbar = plt.colorbar(phicontour)
 #plt.clabel(phicontour, inline=1, fontsize=10)
 
@@ -114,7 +133,7 @@ ax2.set_xlabel('x (zonal)')
 ax2.set_ylabel('z (height)')
 ax2.set_title('Meridional velocity perturbation')
 #ax2.imshow(vprime_matrix, origin = 'lower')
-vcontour = plt.contourf(vprime_matrix, origin = 'lower')
+vcontour = ax2.contourf(vprime_matrix, origin = 'lower')
 vcbar = plt.colorbar(vcontour)
 #plt.clabel(vcontour, inline=1, fontsize=10)
 
@@ -123,7 +142,7 @@ ax3 = fig1.add_subplot(223)
 ax3.set_xlabel('x (zonal)')
 ax3.set_ylabel('z (height)')
 ax3.set_title('Vertical velocity perturbation')
-wcontour = plt.contourf(wprime_matrix, origin = 'lower')
+wcontour = ax3.contourf(wprime_matrix, origin = 'lower')
 wcbar = plt.colorbar(wcontour)
 #plt.clabel(wcontour, inline=1, fontsize=10)
 
@@ -157,4 +176,6 @@ ax4.plot(t, sol[:,0])
 ax4.plot(t,sol[:,1])
 ax4.contour(sol)
 '''
+
+plt.draw()
 plt.show()

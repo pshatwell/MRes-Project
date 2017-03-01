@@ -4,6 +4,7 @@ from sympy import *
 from RWinfo import *
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 ###############################################################################################
 
@@ -90,6 +91,11 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
         #dsdt = [testuprime(x=x,y=y,t=t), testvprime(x=x,y=y,t=t)]
         return dsdt
 
+    def velocity3d(s,t): #Just to see what adding a vertical mean flow does
+        x,y,z = s
+        dsdt = [uprime(x=x,y=y,t=t), vprime(x=x,y=y,t=t), 0.05]
+        return dsdt
+
     t=np.linspace(0,2000,2000)
 
     #s0_a = [0.47, 0.1] #oscillatory trajectory
@@ -120,6 +126,10 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
 
     print 'type of trajectory solution is:', type(sol_a)
     print 'shape of trajectory solution is:', sol_a.shape
+
+    #Solve for 3d parcel trajectory
+    s0_a_3d = [p, p/2., 0]
+    sol_a_3d = odeint(velocity3d, s0_a_3d, t)
 
 
 ###############################################################################################
@@ -204,15 +214,15 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
     ax5.set_xlabel('x (L)')
     ax5.set_ylabel('y (L)')
 
-    ax5.plot(rel_sol_a[:,0], rel_sol_a[:,1], label ='a_RW')
-    ax5.plot(rel_sol_b[:,0], rel_sol_b[:,1], label ='b_RW')
-    ax5.plot(rel_sol_c[:,0], rel_sol_c[:,1], label ='c_RW')
-    ax5.plot(rel_sol_d[:,0], rel_sol_d[:,1], label ='d_RW')
-    ax5.plot(rel_sol_e[:,0], rel_sol_e[:,1], label ='e_RW')
-    ax5.plot(rel_sol_f[:,0], rel_sol_f[:,1], label ='e_RW')
-    ax5.plot(rel_sol_g[:,0], rel_sol_g[:,1], label ='e_RW')
-    ax5.plot(rel_sol_h[:,0], rel_sol_h[:,1], label ='e_RW')
-    ax5.plot(rel_sol_i[:,0], rel_sol_i[:,1], label ='e_RW')
+    ax5.plot(rel_sol_a[:,0], rel_sol_a[:,1], linewidth=1.5, label ='a_RW')
+    ax5.plot(rel_sol_b[:,0], rel_sol_b[:,1], linewidth=1.5, label ='b_RW')
+    ax5.plot(rel_sol_c[:,0], rel_sol_c[:,1], linewidth=1.5, label ='c_RW')
+    ax5.plot(rel_sol_d[:,0], rel_sol_d[:,1], linewidth=1.5, label ='d_RW')
+    ax5.plot(rel_sol_e[:,0], rel_sol_e[:,1], linewidth=1.5, label ='e_RW')
+    ax5.plot(rel_sol_f[:,0], rel_sol_f[:,1], linewidth=1.5, label ='e_RW')
+    ax5.plot(rel_sol_g[:,0], rel_sol_g[:,1], linewidth=1.5, label ='e_RW')
+    ax5.plot(rel_sol_h[:,0], rel_sol_h[:,1], linewidth=1.5, label ='e_RW')
+    ax5.plot(rel_sol_i[:,0], rel_sol_i[:,1], linewidth=1.5, label ='e_RW')
 
     ax5.imshow(psiprime_matrix[:,:], origin='lower', extent=[0,2,0,1], aspect='auto')
 
@@ -221,6 +231,17 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
     #plt.savefig('figures/RWtrajectories/RW_pvalue%s.pdf' %str(p))
 
     #plt.close()
+
+###############################################################################################
+
+    #3d plotting attempt
+
+    fig3 = plt.figure()
+    ax6 = fig3.add_subplot(111, projection = '3d')
+    ax6.set_xlabel('x (L)')
+    ax6.set_ylabel('y (L)')
+    ax6.set_zlabel('z (L)')
+    ax6.plot(sol_a_3d[:,0], sol_a_3d[:,1], sol_a_3d[:,2])
 
     plt.show()
 
