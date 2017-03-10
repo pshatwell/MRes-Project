@@ -31,6 +31,7 @@ print 'sigma is:', sigma
 A_mag = 1.
 B_mag = 1.
 
+#change l wavenumber so it's zero at boundaries for channel piy/L etc.
 def A(x,y,t):
     return A_mag*np.cos(l*L*y)*np.cos(k*(L*x - c.real*T*t))*np.exp(k*c.imag*T*t)
 
