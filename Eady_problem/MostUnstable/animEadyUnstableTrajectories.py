@@ -60,7 +60,7 @@ def main(p, xslice):
 
     ax1.set_xlabel('y (L)')
     ax1.set_ylabel('z (H)')
-    #ax1.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
+    ax1.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
 
     #Plot empty lines on axes to later add data to
     line_a, = ax1.plot([], [])
@@ -246,9 +246,9 @@ def main(p, xslice):
 
 #Run the program
 
-#xslices = [i for i in np.arange(1,4,0.1)]
+pvalues = [i for i in np.arange(-4,4,0.5)]
 
-#for i in xslices:
-#    main(p=0, xslice=i)
+for i in pvalues:
+    main(p=i, xslice=2)
 
-main(p=4, xslice=0)
+#main(p=0, xslice=0)

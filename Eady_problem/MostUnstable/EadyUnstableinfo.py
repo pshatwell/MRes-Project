@@ -30,7 +30,7 @@ c_wave = 0
 c = c_wave
 
 #Information to attempt to plot background theta distribution
-theta0 = 300
+theta0 = 280 #Not important at the moment
 dthetadz = (theta0*(N**2))/g
 dthetady = -(f0*shear)/(g*alpha)
 
@@ -59,11 +59,15 @@ def phiprime_zt(x,z,t):
     #return (sigma_max*phiprime_z(x,z,t) - c*phiprime_zx(x,z,t))
     return sigma_max*phiprime_z(x,z,t)
 
+def umeanflow(z): #Non-dimensional zonal velocity mean shear flow
+    return (1./(L*np.abs(f0)))*shear*H*z
+
 def vprime(x,z,t): #Non-dimensional meridional velocity perturbation, Gill 12.9.3
     return (1./(L*(f0**2)))*phiprime_x(x,z,t)
 
+#CHECK THE SIGN OF f0 HERE??
 def wprime(x,z,t): #Non-dimensional vertical velocity perturbation, Gill 12.9.6
-    return (1./(H*f0))*(1./N**2)*(shear*phiprime_x(x,z,t) - phiprime_zt(x,z,t) - shear*H*z*phiprime_zx(x,z,t))
+    return (1./(H*np.abs(f0)))*(1./N**2)*(shear*phiprime_x(x,z,t) - phiprime_zt(x,z,t) - shear*H*z*phiprime_zx(x,z,t))
 
 def thetaprime(x,z,t): #Potential temperature perturbation, Gill 13.2.5
     return (1./(alpha*g))*phiprime_z(x,z,t)
