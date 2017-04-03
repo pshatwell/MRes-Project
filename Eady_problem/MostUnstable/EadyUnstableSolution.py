@@ -111,4 +111,4 @@ thetaprimecontour = ax4.contourf(thetaprime_matrix, origin='lower', extent=[xmin
 plt.colorbar(thetaprimecontour)
 
 #Save figure as pdf file
-plt.savefig('figures/EadyUnstableSolution.pdf')
+#plt.savefig('figures/EadyUnstableSolution.pdf')

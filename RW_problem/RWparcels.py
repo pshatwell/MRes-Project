@@ -38,6 +38,8 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
 
     time = 0 #Choose time step (in units of T)
 
+    time2 = 2000
+
     xlength = len(xvalues)
     ylength = len(yvalues)
 
@@ -52,6 +54,14 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
 
     print 'type of psiprime_matrix is:', type(psiprime_matrix)
     print 'shape of psiprime_matrix is:', psiprime_matrix.shape
+
+
+    #Create streamfunction matrix for final time
+    psiprime_matrix2 = np.zeros((ylength,xlength))
+
+    for i in range(0, ylength, 1):
+        for j in range(0, xlength, 1):
+            psiprime_matrix2[i,j] = psiprime(x=xvalues[j], y=yvalues[i], t=time2)
 
 ###############################################################################################
 
@@ -203,7 +213,7 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
     ax4.plot(sol_i[:,0], sol_i[:,1], linewidth=1.5, label='i')
 
     #Overlay initial streamfunction to see if trajectories make sense.
-    ax4.imshow(psiprime_matrix[:,:], origin='lower', extent=[0,2,0,1], aspect='auto')
+    ax4.imshow(psiprime_matrix2[:,:], origin='lower', extent=[0,2,0,1], aspect='auto')
 
     #plt.legend(loc='upper left', bbox_to_anchor=(0, 1))
 
@@ -252,4 +262,4 @@ def main(p): #P DETERMINES THE CENTRE OF THE INITIAL POINTS CLUSTER FOR TRAJECTO
 #for i in pvalues:
     #main(p=i)
 
-main(p=0.6)
+main(p=1.08)

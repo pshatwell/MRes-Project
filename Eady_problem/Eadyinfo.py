@@ -19,7 +19,7 @@ shear = U/H #(s^-1) velocity shear
 alpha = 2e-4 #(K^-1) thermal expansion coefficient
 g = 9.8 #(ms^(-2)) gravitational acceleration
 
-#phase speed of wave
+#Phase speed of wave
 csquared = (shear**2)*(H*np.tanh(Hratio) - H_R)*(H*(1./np.tanh(Hratio)) - H_R)
 c = cmath.sqrt(csquared)
 

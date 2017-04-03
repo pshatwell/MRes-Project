@@ -11,6 +11,7 @@ a = 3e4 #(m) deformation radius
 psi0 = 3e4 #(m^2*s^-1) wave amplitude
 beta = 3e-11 #(m^-1*s^-1) latitudinal variation of Coriolis parameter
 c = -beta*(a**2) #(m*s^-1) phase speed of wave
+#c = -0.0027
 
 wavelength = (2*np.pi)/k #horizontal wavelength of wave
 
