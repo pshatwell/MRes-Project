@@ -26,7 +26,7 @@ print 'H/H_R is:', Hratio
 print 'Time period, T is (s):', T
 print 'Horizontal wavenumber, k is (m^-1):', k
 print 'Maximum growth rate, sigma_max is (s^-1):', sigma_max
-print 'e-folding time (T) is (sigma_max*T)^(-1):', 1./(sigma_max*T)
+#print 'e-folding time (T) is (sigma_max*T)^(-1):', 1./(sigma_max*T)
 print 'Buoyancy frequency, N is (s^-1):', N
 print 'Maximum zonal velocity, U is (m*s^-1):', U
 print 'Velocity shear is (s^-1):', shear
@@ -74,8 +74,8 @@ def main(p, time):
     s0_h_3d = [p, p-0.4, (p-0.4)/5.]
     s0_i_3d = [p, p+0.4, (p+0.4)/5.]
     '''
-    s0_a_3d = np.array((0, 0, 0))
-    s0_b_3d = np.array((0.01, 0.01, 0.01))
+    s0_a_3d = np.array((0, 0, 0.5))
+    s0_b_3d = np.array((0.1, 0, 0.5))
 
     #Solve for parcel trajectories
     sol_a_3d = odeint(velocity3d, s0_a_3d, t)
@@ -167,6 +167,8 @@ def main(p, time):
     ax3.set_ylabel('z (H)')
     ax3.plot(sol_a_3d[:,1], sol_a_3d[:,2])
     ax3.plot(sol_b_3d[:,1], sol_b_3d[:,2])
+    ax3.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
+
     '''
     ax3.plot(sol_c_3d[:,1], sol_c_3d[:,2])
     ax3.plot(sol_d_3d[:,1], sol_d_3d[:,2])
@@ -282,4 +284,4 @@ def main(p, time):
 #for i in pvalues:
     #main(p=i, time=5)
 
-main(p=0, time=3)
+main(p=0, time=10)

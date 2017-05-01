@@ -110,7 +110,7 @@ ax4.set_ylabel('z (H)')
 thetaprimecontour = ax4.contourf(thetaprime_matrix, origin='lower', extent=[xmin, xmax, zmin, zmax], aspect='auto')
 plt.colorbar(thetaprimecontour)
 
-plt.close()
+#plt.close()
 
 #Save figure as pdf file
-#plt.savefig('figures/EadyUnstableSolution.pdf')
+plt.savefig('figures/EadyUnstableSolution.pdf')
