@@ -15,6 +15,8 @@ N = 1e-2 #(s^-1) buoyancy frequency
 L = 1e5 #(m) typical length scale of deformation radius in ocean
 #k = 1e-4 #(m^-1) zonal wavenumber of growing wave OLD
 k = 0.8031/L #(m^-1) zonal wavenumber for most unstable growing wave, Gill 13.3.12
+l = np.pi/(2.*L) #(m^-1) meridional wavenumber (= 0 for most unstable case), defining zonal channel
+
 H_R = np.abs(f0/(N*k)) #(m) Rossby height
 H = 0.8031*H_R #(m) positions of boundaries at H and -H for most unstable wave, Gill 13.3.12
 Hratio = np.abs(H/H_R)
@@ -42,39 +44,51 @@ dthetady = -(f0*shear)/(g*alpha)
 
 #CHECK TIME DERIVATIVES FOR TRANSFORMATION, TRY CHANGING AMPLITUDES
 
-def phiprime(x,z,t): #Streamfunction perturbation for fastest growing Eady mode, Gill 13.3.15
-    return ((np.cos(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.sinh(Hratio))) + np.sin(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.cosh(Hratio))))*np.exp(sigma_max*T*t))
+#ADDED COSINE FUNCTION IN y TO PHIPRIME. NEW EXPRESSIONS BENEATH OLD. OLD EXPRESSIONS HAVE NO y-DEPENDENCE.
 
-def phiprime_x(x,z,t):
-    return (k*(np.cos(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.cosh(Hratio))) - np.sin(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.sinh(Hratio))))*np.exp(sigma_max*T*t))
+def phiprime(x,y,z,t): #Streamfunction perturbation for fastest growing Eady mode, Gill 13.3.15
+    #return ((np.cos(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.sinh(Hratio))) + np.sin(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.cosh(Hratio))))*np.exp(sigma_max*T*t))
+    return ((np.cos(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.sinh(Hratio))) + np.sin(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.cosh(Hratio))))*np.exp(sigma_max*T*t))*np.cos(l*L*y)
 
-def phiprime_z(x,z,t):
-    return ((1./H_R)*(np.cos(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.sinh(Hratio))) + np.sin(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.cosh(Hratio))))*np.exp(sigma_max*T*t))
+def phiprime_x(x,y,z,t):
+    #return (k*(np.cos(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.cosh(Hratio))) - np.sin(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.sinh(Hratio))))*np.exp(sigma_max*T*t))
+    return (k*(np.cos(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.cosh(Hratio))) - np.sin(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.sinh(Hratio))))*np.exp(sigma_max*T*t))*np.cos(l*L*y)
 
-def phiprime_t(x,z,t):
+def phiprime_y(x,y,z,t):
+    return (-l*(np.cos(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.sinh(Hratio))) + np.sin(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.cosh(Hratio))))*np.exp(sigma_max*T*t)*np.sin(l*L*y))
+
+def phiprime_z(x,y,z,t):
+    #return ((1./H_R)*(np.cos(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.sinh(Hratio))) + np.sin(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.cosh(Hratio))))*np.exp(sigma_max*T*t))
+    return ((1./H_R)*(np.cos(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.sinh(Hratio))) + np.sin(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.cosh(Hratio))))*np.exp(sigma_max*T*t))*np.cos(l*L*y)
+
+def phiprime_t(x,y,z,t):
     #return (sigma_max*phiprime(x,z,t) - c*phiprime_x(x,z,t))
-    return sigma_max*phiprime(x,z,t)
+    return sigma_max*phiprime(x,y,z,t)
 
-def phiprime_zx(x,z,t):
-    return ((k/H_R)*(np.cos(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.cosh(Hratio))) - np.sin(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.sinh(Hratio))))*np.exp(sigma_max*T*t))
+def phiprime_zx(x,y,z,t):
+    #return ((k/H_R)*(np.cos(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.cosh(Hratio))) - np.sin(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.sinh(Hratio))))*np.exp(sigma_max*T*t))
+    return ((k/H_R)*(np.cos(k*L*(x-c*T*t))*((np.sinh(z*Hratio))/(np.cosh(Hratio))) - np.sin(k*L*(x-c*T*t))*((np.cosh(z*Hratio))/(np.sinh(Hratio))))*np.exp(sigma_max*T*t))*np.cos(l*L*y)
 
-def phiprime_zt(x,z,t):
+def phiprime_zt(x,y,z,t):
     #return (sigma_max*phiprime_z(x,z,t) - c*phiprime_zx(x,z,t))
-    return sigma_max*phiprime_z(x,z,t)
+    return sigma_max*phiprime_z(x,y,z,t)
 
 def umeanflow(z): #Non-dimensional zonal velocity mean shear flow
     return (1./(L*np.abs(f0)))*shear*H*z
 
-def vprime(x,z,t): #Non-dimensional meridional velocity perturbation, Gill 12.9.3
-    return (1./(L*(f0*f0)))*phiprime_x(x,z,t)
+def uprime(x,y,z,t):
+    return (1./(L*np.abs(f0)))*phiprime_y(x,y,z,t)
+
+def vprime(x,y,z,t): #Non-dimensional meridional velocity perturbation, Gill 12.9.3
+    return (1./(L*(f0*f0)))*phiprime_x(x,y,z,t)
 
 #CHECK THE SIGN OF f0 HERE??
 #AT THE MOMENT, ISOTHERMALS SLOPE IN THE WRONG DIRECTION??
-def wprime(x,z,t): #Non-dimensional vertical velocity perturbation, Gill 12.9.6
-    return (1./(H*np.abs(f0)))*(1./N**2)*(shear*phiprime_x(x,z,t) - phiprime_zt(x,z,t) - shear*H*z*phiprime_zx(x,z,t))
+def wprime(x,y,z,t): #Non-dimensional vertical velocity perturbation, Gill 12.9.6
+    return (1./(H*np.abs(f0)))*(1./N**2)*(shear*phiprime_x(x,y,z,t) - phiprime_zt(x,y,z,t) - shear*H*z*phiprime_zx(x,y,z,t))
 
-def thetaprime(x,z,t): #Potential temperature perturbation, Gill 13.2.5
-    return (1./(alpha*g))*phiprime_z(x,z,t)
+def thetaprime(x,y,z,t): #Potential temperature perturbation, Gill 13.2.5
+    return (1./(alpha*g))*phiprime_z(x,y,z,t)
 
 def theta(y,z): #Background theta distribution
     return theta0 + dthetady*y + dthetadz*z
