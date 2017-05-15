@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy.integrate import odeint
 import numpy.linalg as la
 
-from EadyUnstableinfo import *
+from EadyUnstableinfoTEST import *
 from EadyUnstableSolution import *
 
 #MAKE DOUBLY SURE THE TRANSFORMATION IS CORRECT.
@@ -24,15 +24,17 @@ print 'Height of vertical boundaries, H is (m):', H
 print 'Rossby height, H_R is (m):', H_R
 print 'H/H_R is:', Hratio
 print 'Time period, T is (s):', T
-print 'Horizontal wavenumber, k is (m^-1):', k
-print 'Maximum growth rate, sigma_max is (s^-1):', sigma_max
-#print 'e-folding time (T) is (sigma_max*T)^(-1):', 1./(sigma_max*T)
+print 'Zonal wavenumber, k is (m^-1):', k
+print 'Meridional wavenumber, l is (m^-1)', l
+#print 'Maximum growth rate, sigma_max is (s^-1):', sigma_max
+print 'Growth rate, sigma is (s^-1):', sigma
+print 'e-folding time (T) is (sigma*T)^(-1):', 1./(sigma*T)
 print 'Buoyancy frequency, N is (s^-1):', N
-print 'Maximum zonal velocity, U is (m*s^-1):', U
+print 'Maximum zonal velocity, U0 is (m*s^-1):', U0
 print 'Velocity shear is (s^-1):', shear
 print 'Velocity scaling (to dimensionalise) is:', L*np.abs(f0)
-print 'Phase speed c is (m*s^-1):', c
-print 'Angular frequency, k*c is (s^-1):', k*c
+print 'Phase speed c is (m*s^-1):', c*L
+print 'Angular frequency, k*c is (s^-1):', k*c.real*L
 
 ###############################################################################################
 
@@ -48,7 +50,7 @@ def main(p, time):
 
     def velocity3d(s,t):
         x,y,z = s
-        dsdt = [umeanflow(z=z), vprime(x=x,z=z,t=t), wprime(x=x,z=z,t=t)]
+        dsdt = [uprime(x=x,y=y,z=z,t=t)+umeanflow(z=z), vprime(x=x,y=y,z=z,t=t), wprime(x=x,y=y,z=z,t=t)]
         return dsdt
 
 ###############################################################################################
@@ -58,7 +60,7 @@ def main(p, time):
     tmin = 0
     tmax = time
 
-    t = np.linspace(tmin, tmax, 200)
+    t = np.linspace(tmin, tmax, 300)
 
 ###############################################################################################
 
@@ -74,8 +76,8 @@ def main(p, time):
     s0_h_3d = [p, p-0.4, (p-0.4)/5.]
     s0_i_3d = [p, p+0.4, (p+0.4)/5.]
     '''
-    s0_a_3d = np.array((0, 0, 0.5))
-    s0_b_3d = np.array((0.1, 0, 0.5))
+    s0_a_3d = np.array((3, 0.5, 0.1))
+    s0_b_3d = np.array((4, 0.5, -0.1))
 
     #Solve for parcel trajectories
     sol_a_3d = odeint(velocity3d, s0_a_3d, t)
@@ -111,7 +113,7 @@ def main(p, time):
 
     #Transform to wave frame by shifting x-coordinates
     shift = np.zeros_like(sol_a_3d)
-    shift[:,0] = -c*T*t
+    shift[:,0] = -c.real*T*t
 
     #Define new x-shifted trajectories
     rel_sol_a_3d = sol_a_3d + shift
@@ -161,14 +163,16 @@ def main(p, time):
     ax2.plot(sol_h_3d[:,0], sol_h_3d[:,2])
     ax2.plot(sol_i_3d[:,0], sol_i_3d[:,2])
     '''
+
+
     #Projection in y-z plane
     ax3 = fig1.add_subplot(223)
     ax3.set_xlabel('y (L)')
     ax3.set_ylabel('z (H)')
     ax3.plot(sol_a_3d[:,1], sol_a_3d[:,2])
     ax3.plot(sol_b_3d[:,1], sol_b_3d[:,2])
-    ax3.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
-
+    isentropes1 = ax3.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
+    plt.colorbar(isentropes1)
     '''
     ax3.plot(sol_c_3d[:,1], sol_c_3d[:,2])
     ax3.plot(sol_d_3d[:,1], sol_d_3d[:,2])
@@ -236,6 +240,8 @@ def main(p, time):
     ax7.set_ylabel('z (H)')
     ax7.plot(rel_sol_a_3d[:,1], rel_sol_a_3d[:,2])
     ax7.plot(rel_sol_b_3d[:,1], rel_sol_b_3d[:,2])
+    isentropes2 = ax7.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
+    plt.colorbar(isentropes2)
     '''
     ax7.plot(rel_sol_c_3d[:,1], rel_sol_c_3d[:,2])
     ax7.plot(rel_sol_d_3d[:,1], rel_sol_d_3d[:,2])
@@ -284,4 +290,4 @@ def main(p, time):
 #for i in pvalues:
     #main(p=i, time=5)
 
-main(p=0, time=10)
+main(p=0, time=3)

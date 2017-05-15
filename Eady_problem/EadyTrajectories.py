@@ -1,3 +1,7 @@
+
+'''Script to plot fluid parcel trajectories for Eady model.'''
+
+
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -6,6 +10,19 @@ from scipy.integrate import odeint
 import numpy.linalg as la
 
 from Eadyinfo import *
+
+print 'H is', H
+print 'L is', L
+print 'T is', T
+
+print 'k is', k
+print 'l is', l
+print 'mu is', mu
+
+print 'c is:', c
+print 'sigma is:', sigma
+if sigma != 0:
+    print 'e-folding time (T) is:', 1./(sigma*T)
 
 ###############################################################################################
 
@@ -26,14 +43,14 @@ def main(time):
     tmin = 0
     tmax = time
 
-    t = np.linspace(tmin, tmax, 200)
+    t = np.linspace(tmin, tmax, 300)
 
 ###############################################################################################
 
     #Define initial positions of parcels
 
     s0_a_3d = np.array((0.1, 0.1, 0.1))
-    s0_b_3d = np.array((0.1, 0.2, 0.1))
+    s0_b_3d = np.array((0.2, 0.1, 0.1))
 
     #Solve for parcel trajectories
     sol_a_3d = odeint(velocity3d, s0_a_3d, t)
@@ -65,10 +82,24 @@ def main(time):
     rel_sol_a_3d = sol_a_3d + shift
     rel_sol_b_3d = sol_b_3d + shift
 
+
+###############################################################################################
+
+    #Create matrix for background potential temperature distribution
+    theta_matrix = np.zeros((50,50))
+
+    thetayvalues = np.linspace(-1,1,50)
+    thetazvalues = np.linspace(0,1,50)
+
+    for i in range(0, 50, 1):
+        for j in range(0, 50, 1):
+            theta_matrix[i,j] = theta(y=thetayvalues[j], z=thetazvalues[i])
+
 ###############################################################################################
 
     #Plot the full 3d trajectories in the Earth frame
     fig1 = plt.figure()
+    plt.set_cmap('inferno')
     fig1.suptitle('Earth frame')
     ax1 = fig1.add_subplot(221, projection = '3d')
     ax1.set_xlabel('x (L)')
@@ -90,6 +121,8 @@ def main(time):
     ax3.set_ylabel('z (H)')
     ax3.plot(sol_a_3d[:,1], sol_a_3d[:,2])
     ax3.plot(sol_b_3d[:,1], sol_b_3d[:,2])
+    #isentropes1 = ax3.contourf(theta_matrix, origin='lower', extent=[0.100006, 0.10002, 0.9999999, 0.10000005], aspect='auto')
+    #plt.colorbar(isentropes1)
 
     #Projection in x-y plane
     ax4 = fig1.add_subplot(224)
@@ -102,6 +135,7 @@ def main(time):
 
     #Plot the full 3d trajectories in the Wave frame
     fig2 = plt.figure()
+    plt.set_cmap('inferno')
     fig2.suptitle('Wave frame')
     ax5 = fig2.add_subplot(221, projection = '3d')
     ax5.set_xlabel('x (L)')
@@ -133,6 +167,8 @@ def main(time):
 
 ###############################################################################################
 
+    #Plot parcel separation with time
+
     fig3 = plt.figure()
     fig3.suptitle('Parcel separation')
     ax9 = fig3.add_subplot(111)
@@ -142,10 +178,22 @@ def main(time):
     ax9.axhline(y=d_i,color='black',ls='dotted')
 
 
+###############################################################################################
+
+    #Plot background potential temperature distribution
+    fig4 =plt.figure()
+    plt.set_cmap('inferno')
+    fig4.suptitle('Basic state potential temperature')
+    ax10 = fig4.add_subplot(111)
+    ax10.set_xlabel('y (L)')
+    ax10.set_ylabel('z (H)')
+    thetacontour = ax10.contourf(theta_matrix, origin='lower', aspect='auto', extent=[-1,1,0,1])
+    plt.colorbar(thetacontour)
+
     plt.show()
 
 ###############################################################################################
 
 #Run the programme
 
-main(time=10)
+main(time=5)

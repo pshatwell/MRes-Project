@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 
-from EadyUnstableinfo import *
+from EadyUnstableinfoTEST import *
 
 ###############################################################################################
 
@@ -21,7 +21,7 @@ xvalues = np.linspace(xmin, xmax, 50)
 yvalues = np.linspace(ymin, ymax, 50)
 zvalues = np.linspace(zmin, zmax, 50)
 
-time = 0.5
+time = 0
 
 xlength = len(xvalues)
 ylength = len(yvalues)
@@ -76,9 +76,12 @@ for i in range(0, zlength, 1):
 #Create matrix for background potential temperature distribution
 theta_matrix = np.zeros((zlength,ylength))
 
+thetayvalues = np.linspace(ymin,ymax,ylength)
+thetazvalues = np.linspace(zmin,zmax,zlength)
+
 for i in range(0, zlength, 1):
     for j in range(0, ylength, 1):
-        theta_matrix[i,j] = theta(y=yvalues[j], z=zvalues[i])
+        theta_matrix[i,j] = theta(y=thetayvalues[j], z=thetazvalues[i])
 
 ###############################################################################################
 
@@ -151,6 +154,7 @@ thetaprimecontour = ax8.contourf(thetaprime_matrix[0,:,:], origin='lower', exten
 plt.colorbar(thetaprimecontour)
 
 plt.show()
+#plt.close()
 
 #Save figure as pdf file
 #plt.savefig('figures/EadyUnstableSolution.pdf')
