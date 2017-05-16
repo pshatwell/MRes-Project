@@ -33,6 +33,7 @@ def main(time):
     def velocity3d(s,t):
         x,y,z = s
         dsdt = [uprime(x=x,y=y,z=z,t=t) + umeanflow(z=z), vprime(x=x,y=y,z=z,t=t), wprime(x=x,y=y,z=z,t=t)]
+        #dsdt = [uprime(x=x,y=y,z=z,t=t), vprime(x=x,y=y,z=z,t=t), wprime(x=x,y=y,z=z,t=t)]
         return dsdt
 
 
@@ -43,14 +44,14 @@ def main(time):
     tmin = 0
     tmax = time
 
-    t = np.linspace(tmin, tmax, 300)
+    t = np.linspace(tmin, tmax, 500)
 
 ###############################################################################################
 
     #Define initial positions of parcels
 
-    s0_a_3d = np.array((0.1, 0.1, 0.1))
-    s0_b_3d = np.array((0.2, 0.1, 0.1))
+    s0_a_3d = np.array((0.1, 0.1, 0.8))
+    s0_b_3d = np.array((0.2, 0.1, 0.8))
 
     #Solve for parcel trajectories
     sol_a_3d = odeint(velocity3d, s0_a_3d, t)
@@ -196,4 +197,4 @@ def main(time):
 
 #Run the programme
 
-main(time=5)
+main(time=30)
