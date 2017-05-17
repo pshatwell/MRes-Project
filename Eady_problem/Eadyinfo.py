@@ -7,6 +7,7 @@ import cmath
 
 '''
 CURRENTLY CANNOT GET AN UNSTABLE SITUATION FOR ZONAL CHANNEL (VALUE OF l TOO LARGE)
+WHY IS ZONAL MOTION SO LARGE??
 '''
 
 ################################# PHYSICAL PARAMETERS #############################################################
@@ -33,10 +34,6 @@ c = U_0/2. + (U_0/mu)*cmath.sqrt((mu/2. - (1./np.tanh(mu/2.)))*(mu/2. - np.tanh(
 
 sigma = k*c.imag #(s^-1) growth rate
 
-'''
-I THINK THE PHASE SPEED IS MUCH TOO LARGE FOR SOME REASON.
-IS THE PROBLEM THAT PHASE SPEED IS DIMENSIONAL, BUT VELOCITY PERTURBATIONS ARE DIMENSIONLESS?
-'''
 
 #Information to plot background theta distribution
 theta0 = 280. #Reference temperature value
