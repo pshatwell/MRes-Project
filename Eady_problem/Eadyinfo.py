@@ -5,11 +5,6 @@
 import numpy as np
 import cmath
 
-'''
-CURRENTLY CANNOT GET AN UNSTABLE SITUATION FOR ZONAL CHANNEL (VALUE OF l TOO LARGE)
-WHY IS ZONAL MOTION SO LARGE??
-'''
-
 ################################# PHYSICAL PARAMETERS #############################################################
 
 #Oceanic parameters, Vallis p. 269
@@ -21,9 +16,8 @@ U_0 = 0.1 #(ms^(-1)) mean flow zonal velocity magnitude at upper boundary
 Lambda = U_0/H #(s^-1) uniform velocity shear in vertical direction
 L = np.abs((N*H)/f0) #(m) typical length scale given by deformation radius
 T = L/U_0 #(s) Eady timescale (about a week)
-k = 8e-5 #(m^-1) zonal wavenumber
-#l = (np.pi)/L #(m^-1) meridional wavenumber, defined for zonal channel
-l = 5e-5
+k = (1.)/L  #(m^-1) zonal wavenumber
+l = (np.pi)/(2*L) #(m^-1) meridional wavenumber, defined for zonal channel
 mu = L*np.sqrt(k**2 + l**2) #dimensionless parameter governing vertical wave struture
 
 alpha = 2e-4 #(K^-1) thermal expansion coefficient
@@ -65,7 +59,7 @@ def dphi_idz(z):
 
 #Streamfunction perturbation, Vallis 6.77
 def psiprime(x,y,z,t):
-    return (phi_r(z)*np.cos(k*(L*x - c.real*T*t)) - phi_i(z)*np.sin(k*(L*x - c.real*T*t)))*np.sin(l*L*y)*np.exp(sigma*T*t)
+    return (phi_r(z)*np.cos(k*(L*x - c.real*T*t)) - phi_i(z)*np.sin(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t)
 
 #Nondimensional zonal flow of basic state
 def umeanflow(z):
@@ -78,10 +72,10 @@ def theta(y,z):
 
 #Define nondimensional velocity perturbations (see notebook for calculations)
 def uprime(x,y,z,t):
-    return -(T/L)*l*(phi_r(z)*np.cos(k*(L*x - c.real*T*t)) - phi_i(z)*np.sin(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t)
+    return (T/L)*l*(phi_r(z)*np.cos(k*(L*x - c.real*T*t)) - phi_i(z)*np.sin(k*(L*x - c.real*T*t)))*np.sin(l*L*y)*np.exp(sigma*T*t)
 
 def vprime(x,y,z,t):
-    return -(T/L)*k*(phi_r(z)*np.sin(k*(L*x - c.real*T*t)) + phi_i(z)*np.cos(k*(L*x - c.real*T*t)))*np.sin(l*L*y)*np.exp(sigma*T*t)
+    return -(T/L)*k*(phi_r(z)*np.sin(k*(L*x - c.real*T*t)) + phi_i(z)*np.cos(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t)
 
 def wprime(x,y,z,t):
-    return -(T/H)*(f0/(N**2))*(((k*(c.real - Lambda*H*z)*dphi_rdz(z) - sigma*dphi_idz(z))*np.sin(k*(L*x - c.real*T*t)) + (k*(c.real - Lambda*H*z)*dphi_idz(z) + sigma*dphi_rdz(z))*np.cos(k*(L*x - c.real*T*t)))*np.sin(l*L*y)*np.exp(sigma*T*t) - Lambda*(L/T)*vprime(x,y,z,t))
+    return -(T/H)*(f0/(N**2))*(((k*(c.real - Lambda*H*z)*dphi_rdz(z) - sigma*dphi_idz(z))*np.sin(k*(L*x - c.real*T*t)) + (k*(c.real - Lambda*H*z)*dphi_idz(z) + sigma*dphi_rdz(z))*np.cos(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t) - Lambda*(L/T)*vprime(x,y,z,t))

@@ -50,48 +50,71 @@ def main(start, stop):
 
     #Define initial positions of parcels
 
-    s0_a_3d = np.array((0.1, 0.5, 0.7))
-    s0_b_3d = np.array((0.2, 0.5, 0.7))
-    s0_c_3d = np.array((0.3, 0.5, 0.7))
-    s0_d_3d = np.array((3.1, 0.5, 0.8))
-    s0_e_3d = np.array((3.2, 0.5, 0.8))
+    top = 0.53
+    bottom = 0.47
+
+    s0_a = np.array((0, -0.5, top))
+    s0_b = np.array((0.5, -0.5, top))
+    s0_c = np.array((1, -0.5, top))
+    s0_d = np.array((1.5, -0.5, top))
+    s0_e = np.array((2, -0.5, top))
+
+    s0_f = np.array((3, 0.5, bottom))
+    s0_g = np.array((3.5, 0.5, bottom))
+    s0_h = np.array((4, 0.5, bottom))
+    s0_i = np.array((4.5, 0.5, bottom))
+    s0_j = np.array((5, 0.5, bottom))
+
 
     #Solve for parcel trajectories
-    sol_a_3d = odeint(velocity3d, s0_a_3d, t)
-    sol_b_3d = odeint(velocity3d, s0_b_3d, t)
-    sol_c_3d = odeint(velocity3d, s0_c_3d, t)
-    sol_d_3d = odeint(velocity3d, s0_d_3d, t)
-    sol_e_3d = odeint(velocity3d, s0_e_3d, t)
+
+    sol_a = odeint(velocity3d, s0_a, t)
+    sol_b = odeint(velocity3d, s0_b, t)
+    sol_c = odeint(velocity3d, s0_c, t)
+    sol_d = odeint(velocity3d, s0_d, t)
+    sol_e = odeint(velocity3d, s0_e, t)
+
+    sol_f = odeint(velocity3d, s0_f, t)
+    sol_g = odeint(velocity3d, s0_g, t)
+    sol_h = odeint(velocity3d, s0_h, t)
+    sol_i = odeint(velocity3d, s0_i, t)
+    sol_j = odeint(velocity3d, s0_j, t)
 
 ###############################################################################################
 
     #Distance calculations
 
     #Calculate initial parcel separation
-    d_i = la.norm(s0_b_3d - s0_a_3d)
+    d_i = la.norm(s0_b - s0_a)
     print 'initial separation is:', d_i
 
     #Calculate final parcel separation
-    d_f = la.norm(sol_b_3d[-1] - sol_a_3d[-1])
+    d_f = la.norm(sol_b[-1] - sol_a[-1])
     print 'final separation is:', d_f
 
     distances = []
     for i in range(len(t)):
-        distances.append(la.norm(sol_b_3d[i] - sol_a_3d[i]))
+        distances.append(la.norm(sol_b[i] - sol_a[i]))
 
 ###############################################################################################
 
 
     #Transform to wave frame by shifting x-coordinates
-    shift = np.zeros_like(sol_a_3d)
+    shift = np.zeros_like(sol_a)
     shift[:,0] = -c.real*t*(T/L) #Factor of (T/L) to make nondimensional
 
     #Define new x-shifted trajectories
-    rel_sol_a_3d = sol_a_3d + shift
-    rel_sol_b_3d = sol_b_3d + shift
-    rel_sol_c_3d = sol_c_3d + shift
-    rel_sol_d_3d = sol_d_3d + shift
-    rel_sol_e_3d = sol_e_3d + shift
+    rel_sol_a = sol_a + shift
+    rel_sol_b = sol_b + shift
+    rel_sol_c = sol_c + shift
+    rel_sol_d = sol_d + shift
+    rel_sol_e = sol_e + shift
+
+    rel_sol_f = sol_f + shift
+    rel_sol_g = sol_g + shift
+    rel_sol_h = sol_h + shift
+    rel_sol_i = sol_i + shift
+    rel_sol_j = sol_j + shift
 
 
 ###############################################################################################
@@ -99,11 +122,11 @@ def main(start, stop):
     #Create matrix for background potential temperature distribution
     theta_matrix = np.zeros((50,50))
 
-    ymin = sol_a_3d[0,1]
-    ymax = sol_a_3d[-1,1]
+    ymin = sol_a[0,1]
+    ymax = sol_a[-1,1]
 
-    zmin = sol_a_3d[0,2]
-    zmax = sol_a_3d[-1,2]
+    zmin = sol_a[0,2]
+    zmax = sol_a[-1,2]
 
     thetayvalues = np.linspace(ymin,ymax,50)
     thetazvalues = np.linspace(zmin,zmax,50)
@@ -122,43 +145,68 @@ def main(start, stop):
     ax1.set_xlabel('x (L)')
     ax1.set_ylabel('y (L)')
     ax1.set_zlabel('z (H)')
-    ax1.plot(sol_a_3d[:,0], sol_a_3d[:,1], sol_a_3d[:,2])
-    ax1.plot(sol_b_3d[:,0], sol_b_3d[:,1], sol_b_3d[:,2])
-    ax1.plot(sol_c_3d[:,0], sol_c_3d[:,1], sol_c_3d[:,2])
-    ax1.plot(sol_d_3d[:,0], sol_d_3d[:,1], sol_d_3d[:,2])
-    ax1.plot(sol_e_3d[:,0], sol_e_3d[:,1], sol_e_3d[:,2])
+    ax1.plot(sol_a[:,0], sol_a[:,1], sol_a[:,2])
+    ax1.plot(sol_b[:,0], sol_b[:,1], sol_b[:,2])
+    ax1.plot(sol_c[:,0], sol_c[:,1], sol_c[:,2])
+    ax1.plot(sol_d[:,0], sol_d[:,1], sol_d[:,2])
+    ax1.plot(sol_e[:,0], sol_e[:,1], sol_e[:,2])
+
+    ax1.plot(sol_f[:,0], sol_f[:,1], sol_f[:,2])
+    ax1.plot(sol_g[:,0], sol_g[:,1], sol_g[:,2])
+    ax1.plot(sol_h[:,0], sol_h[:,1], sol_h[:,2])
+    ax1.plot(sol_i[:,0], sol_i[:,1], sol_i[:,2])
+    ax1.plot(sol_j[:,0], sol_j[:,1], sol_j[:,2])
 
     #Projection in x-z plane
     ax2 = fig1.add_subplot(222)
     ax2.set_xlabel('x (L)')
     ax2.set_ylabel('z (H)')
-    ax2.plot(sol_a_3d[:,0], sol_a_3d[:,2])
-    ax2.plot(sol_b_3d[:,0], sol_b_3d[:,2])
-    ax2.plot(sol_c_3d[:,0], sol_c_3d[:,2])
-    ax2.plot(sol_d_3d[:,0], sol_d_3d[:,2])
-    ax2.plot(sol_e_3d[:,0], sol_e_3d[:,2])
+    ax2.plot(sol_a[:,0], sol_a[:,2])
+    ax2.plot(sol_b[:,0], sol_b[:,2])
+    ax2.plot(sol_c[:,0], sol_c[:,2])
+    ax2.plot(sol_d[:,0], sol_d[:,2])
+    ax2.plot(sol_e[:,0], sol_e[:,2])
+
+    ax2.plot(sol_f[:,0], sol_f[:,2])
+    ax2.plot(sol_g[:,0], sol_g[:,2])
+    ax2.plot(sol_h[:,0], sol_h[:,2])
+    ax2.plot(sol_i[:,0], sol_i[:,2])
+    ax2.plot(sol_j[:,0], sol_j[:,2])
 
     #Projection in y-z plane
     ax3 = fig1.add_subplot(223)
     ax3.set_xlabel('y (L)')
     ax3.set_ylabel('z (H)')
-    ax3.plot(sol_a_3d[:,1], sol_a_3d[:,2])
-    ax3.plot(sol_b_3d[:,1], sol_b_3d[:,2])
-    ax3.plot(sol_c_3d[:,1], sol_c_3d[:,2])
-    ax3.plot(sol_d_3d[:,1], sol_d_3d[:,2])
-    ax3.plot(sol_e_3d[:,1], sol_e_3d[:,2])
     isentropes1 = ax3.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
     plt.colorbar(isentropes1)
+    ax3.plot(sol_a[:,1], sol_a[:,2])
+    ax3.plot(sol_b[:,1], sol_b[:,2])
+    ax3.plot(sol_c[:,1], sol_c[:,2])
+    ax3.plot(sol_d[:,1], sol_d[:,2])
+    ax3.plot(sol_e[:,1], sol_e[:,2])
+
+    ax3.plot(sol_f[:,1], sol_f[:,2])
+    ax3.plot(sol_g[:,1], sol_g[:,2])
+    ax3.plot(sol_h[:,1], sol_h[:,2])
+    ax3.plot(sol_i[:,1], sol_i[:,2])
+    ax3.plot(sol_j[:,1], sol_j[:,2])
+
 
     #Projection in x-y plane
     ax4 = fig1.add_subplot(224)
     ax4.set_xlabel('x (L)')
     ax4.set_ylabel('y (L)')
-    ax4.plot(sol_a_3d[:,0], sol_a_3d[:,1])
-    ax4.plot(sol_b_3d[:,0], sol_b_3d[:,1])
-    ax4.plot(sol_c_3d[:,0], sol_c_3d[:,1])
-    ax4.plot(sol_d_3d[:,0], sol_d_3d[:,1])
-    ax4.plot(sol_e_3d[:,0], sol_e_3d[:,1])
+    ax4.plot(sol_a[:,0], sol_a[:,1])
+    ax4.plot(sol_b[:,0], sol_b[:,1])
+    ax4.plot(sol_c[:,0], sol_c[:,1])
+    ax4.plot(sol_d[:,0], sol_d[:,1])
+    ax4.plot(sol_e[:,0], sol_e[:,1])
+
+    ax4.plot(sol_f[:,0], sol_f[:,1])
+    ax4.plot(sol_g[:,0], sol_g[:,1])
+    ax4.plot(sol_h[:,0], sol_h[:,1])
+    ax4.plot(sol_i[:,0], sol_i[:,1])
+    ax4.plot(sol_j[:,0], sol_j[:,1])
 
 ###############################################################################################
 
@@ -170,43 +218,68 @@ def main(start, stop):
     ax5.set_xlabel('x (L)')
     ax5.set_ylabel('y (L)')
     ax5.set_zlabel('z (H)')
-    ax5.plot(rel_sol_a_3d[:,0], rel_sol_a_3d[:,1], rel_sol_a_3d[:,2])
-    ax5.plot(rel_sol_b_3d[:,0], rel_sol_b_3d[:,1], rel_sol_b_3d[:,2])
-    ax5.plot(rel_sol_c_3d[:,0], rel_sol_c_3d[:,1], rel_sol_c_3d[:,2])
-    ax5.plot(rel_sol_d_3d[:,0], rel_sol_d_3d[:,1], rel_sol_d_3d[:,2])
-    ax5.plot(rel_sol_e_3d[:,0], rel_sol_e_3d[:,1], rel_sol_e_3d[:,2])
+    ax5.plot(rel_sol_a[:,0], rel_sol_a[:,1], rel_sol_a[:,2])
+    ax5.plot(rel_sol_b[:,0], rel_sol_b[:,1], rel_sol_b[:,2])
+    ax5.plot(rel_sol_c[:,0], rel_sol_c[:,1], rel_sol_c[:,2])
+    ax5.plot(rel_sol_d[:,0], rel_sol_d[:,1], rel_sol_d[:,2])
+    ax5.plot(rel_sol_e[:,0], rel_sol_e[:,1], rel_sol_e[:,2])
+
+    ax5.plot(rel_sol_f[:,0], rel_sol_f[:,1], rel_sol_f[:,2])
+    ax5.plot(rel_sol_g[:,0], rel_sol_g[:,1], rel_sol_g[:,2])
+    ax5.plot(rel_sol_h[:,0], rel_sol_h[:,1], rel_sol_h[:,2])
+    ax5.plot(rel_sol_i[:,0], rel_sol_i[:,1], rel_sol_i[:,2])
+    ax5.plot(rel_sol_j[:,0], rel_sol_j[:,1], rel_sol_j[:,2])
 
     #Projection in x-z plane
     ax6 = fig2.add_subplot(222)
     ax6.set_xlabel('x (L)')
     ax6.set_ylabel('z (H)')
-    ax6.plot(rel_sol_a_3d[:,0], rel_sol_a_3d[:,2])
-    ax6.plot(rel_sol_b_3d[:,0], rel_sol_b_3d[:,2])
-    ax6.plot(rel_sol_c_3d[:,0], rel_sol_c_3d[:,2])
-    ax6.plot(rel_sol_d_3d[:,0], rel_sol_d_3d[:,2])
-    ax6.plot(rel_sol_e_3d[:,0], rel_sol_e_3d[:,2])
+    ax6.plot(rel_sol_a[:,0], rel_sol_a[:,2])
+    ax6.plot(rel_sol_b[:,0], rel_sol_b[:,2])
+    ax6.plot(rel_sol_c[:,0], rel_sol_c[:,2])
+    ax6.plot(rel_sol_d[:,0], rel_sol_d[:,2])
+    ax6.plot(rel_sol_e[:,0], rel_sol_e[:,2])
+
+    ax6.plot(rel_sol_f[:,0], rel_sol_f[:,2])
+    ax6.plot(rel_sol_g[:,0], rel_sol_g[:,2])
+    ax6.plot(rel_sol_h[:,0], rel_sol_h[:,2])
+    ax6.plot(rel_sol_i[:,0], rel_sol_i[:,2])
+    ax6.plot(rel_sol_j[:,0], rel_sol_j[:,2])
 
     #Projection in y-z plane
     ax7 = fig2.add_subplot(223)
     ax7.set_xlabel('y (L)')
     ax7.set_ylabel('z (H)')
-    ax7.plot(rel_sol_a_3d[:,1], rel_sol_a_3d[:,2])
-    ax7.plot(rel_sol_b_3d[:,1], rel_sol_b_3d[:,2])
-    ax7.plot(rel_sol_c_3d[:,1], rel_sol_c_3d[:,2])
-    ax7.plot(rel_sol_d_3d[:,1], rel_sol_d_3d[:,2])
-    ax7.plot(rel_sol_e_3d[:,1], rel_sol_e_3d[:,2])
     isentropes2 = ax7.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
     plt.colorbar(isentropes2)
+    ax7.plot(rel_sol_a[:,1], rel_sol_a[:,2])
+    ax7.plot(rel_sol_b[:,1], rel_sol_b[:,2])
+    ax7.plot(rel_sol_c[:,1], rel_sol_c[:,2])
+    ax7.plot(rel_sol_d[:,1], rel_sol_d[:,2])
+    ax7.plot(rel_sol_e[:,1], rel_sol_e[:,2])
+
+    ax7.plot(rel_sol_f[:,1], rel_sol_f[:,2])
+    ax7.plot(rel_sol_g[:,1], rel_sol_g[:,2])
+    ax7.plot(rel_sol_h[:,1], rel_sol_h[:,2])
+    ax7.plot(rel_sol_i[:,1], rel_sol_i[:,2])
+    ax7.plot(rel_sol_j[:,1], rel_sol_j[:,2])
+
 
     #Projection in x-y plane
     ax8 = fig2.add_subplot(224)
     ax8.set_xlabel('x (L)')
     ax8.set_ylabel('y (L)')
-    ax8.plot(rel_sol_a_3d[:,0], rel_sol_a_3d[:,1])
-    ax8.plot(rel_sol_b_3d[:,0], rel_sol_b_3d[:,1])
-    ax8.plot(rel_sol_c_3d[:,0], rel_sol_c_3d[:,1])
-    ax8.plot(rel_sol_d_3d[:,0], rel_sol_d_3d[:,1])
-    ax8.plot(rel_sol_e_3d[:,0], rel_sol_e_3d[:,1])
+    ax8.plot(rel_sol_a[:,0], rel_sol_a[:,1])
+    ax8.plot(rel_sol_b[:,0], rel_sol_b[:,1])
+    ax8.plot(rel_sol_c[:,0], rel_sol_c[:,1])
+    ax8.plot(rel_sol_d[:,0], rel_sol_d[:,1])
+    ax8.plot(rel_sol_e[:,0], rel_sol_e[:,1])
+
+    ax8.plot(rel_sol_f[:,0], rel_sol_f[:,1])
+    ax8.plot(rel_sol_g[:,0], rel_sol_g[:,1])
+    ax8.plot(rel_sol_h[:,0], rel_sol_h[:,1])
+    ax8.plot(rel_sol_i[:,0], rel_sol_i[:,1])
+    ax8.plot(rel_sol_j[:,0], rel_sol_j[:,1])
 
 ###############################################################################################
 
@@ -239,4 +312,4 @@ def main(start, stop):
 
 #Run the programme
 
-main(start=15, stop=35)
+main(start=0, stop=50)
