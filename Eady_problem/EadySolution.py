@@ -101,8 +101,8 @@ def main(t):
     ax1 = fig1.add_subplot(311)
     ax1.set_xlabel('x (L)')
     ax1.set_ylabel('y (L)')
-    #Plotting in x-y plane at z=0
-    xy_contour = ax1.contourf(psiprime_matrix[0,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
+    #Plotting in x-y plane at z=H/2
+    xy_contour = ax1.contourf(psiprime_matrix[24,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
     plt.colorbar(xy_contour)
 
     ax2 = fig1.add_subplot(312)
@@ -129,8 +129,8 @@ def main(t):
     ax4 = fig2.add_subplot(311)
     ax4.set_xlabel('x (L)')
     ax4.set_ylabel('y (L)')
-    #Plotting in x-y plane at z=0
-    xy_contour_u = ax4.contourf(uprime_matrix[0,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
+    #Plotting in x-y plane at z=H/2
+    xy_contour_u = ax4.contourf(uprime_matrix[24,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
     plt.colorbar(xy_contour_u)
 
     ax5 = fig2.add_subplot(312)
@@ -157,8 +157,8 @@ def main(t):
     ax7 = fig3.add_subplot(311)
     ax7.set_xlabel('x (L)')
     ax7.set_ylabel('y (L)')
-    #Plotting in x-y plane at z=0
-    xy_contour_v = ax7.contourf(vprime_matrix[0,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
+    #Plotting in x-y plane at z=H/2
+    xy_contour_v = ax7.contourf(vprime_matrix[24,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
     plt.colorbar(xy_contour_v)
 
     ax8 = fig3.add_subplot(312)
@@ -185,8 +185,8 @@ def main(t):
     ax10 = fig4.add_subplot(311)
     ax10.set_xlabel('x (L)')
     ax10.set_ylabel('y (L)')
-    #Plotting in x-y plane at z=0
-    xy_contour_w = ax10.contourf(wprime_matrix[0,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
+    #Plotting in x-y plane at z=H/2
+    xy_contour_w = ax10.contourf(wprime_matrix[24,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
     plt.colorbar(xy_contour_w)
 
     ax11 = fig4.add_subplot(312)

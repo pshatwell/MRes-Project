@@ -1,6 +1,8 @@
 
 '''Script to plot fluid parcel trajectories for Eady model.'''
 
+'''WHAT IS THE NORMAL TO THETA SURFACES?
+WHAT IS WRONG WITH CURRENT CALCULATION?'''
 
 import numpy as np
 import scipy as sp
@@ -50,20 +52,27 @@ def main(start, stop):
 
     #Define initial positions of parcels
 
-    top = 0.53
-    bottom = 0.47
+    #setting both 'cold' and 'warm' parcels off at the same height but different y
+    #seems to give closest reproduction of Green picture
+    top = 0.5
+    bottom = 0.5
+    x1 = 0
+    xshift = np.pi/(k*L) #nondimensional shift of half a wavelength
+    y1 = 0.85
 
-    s0_a = np.array((0, -0.5, top))
-    s0_b = np.array((0.5, -0.5, top))
-    s0_c = np.array((1, -0.5, top))
-    s0_d = np.array((1.5, -0.5, top))
-    s0_e = np.array((2, -0.5, top))
+    #Set of 5 'warm' parcels
+    s0_a = np.array((x1, y1, top))
+    s0_b = np.array((x1+0.5, y1, top))
+    s0_c = np.array((x1+1, y1, top))
+    s0_d = np.array((x1+1.5, y1, top))
+    s0_e = np.array((x1+2, y1, top))
 
-    s0_f = np.array((3, 0.5, bottom))
-    s0_g = np.array((3.5, 0.5, bottom))
-    s0_h = np.array((4, 0.5, bottom))
-    s0_i = np.array((4.5, 0.5, bottom))
-    s0_j = np.array((5, 0.5, bottom))
+    #Set of 5 'cold' parcels
+    s0_f = np.array((x1+xshift, -y1, bottom))
+    s0_g = np.array((x1+xshift+0.5, -y1, bottom))
+    s0_h = np.array((x1+xshift+1, -y1, bottom))
+    s0_i = np.array((x1+xshift+1.5, -y1, bottom))
+    s0_j = np.array((x1+xshift+2, -y1, bottom))
 
 
     #Solve for parcel trajectories
@@ -80,9 +89,11 @@ def main(start, stop):
     sol_i = odeint(velocity3d, s0_i, t)
     sol_j = odeint(velocity3d, s0_j, t)
 
+    EFsolutions = [sol_a, sol_b, sol_c, sol_d, sol_e, sol_f, sol_g, sol_h, sol_i, sol_j]
+
 ###############################################################################################
 
-    #Distance calculations
+    #Distance calculations between parcels a and b
 
     #Calculate initial parcel separation
     d_i = la.norm(s0_b - s0_a)
@@ -116,17 +127,18 @@ def main(start, stop):
     rel_sol_i = sol_i + shift
     rel_sol_j = sol_j + shift
 
+    WFsolutions = [rel_sol_a, rel_sol_b, rel_sol_c, rel_sol_d, rel_sol_e, rel_sol_f, rel_sol_g, rel_sol_h, rel_sol_i, rel_sol_j]
 
 ###############################################################################################
 
     #Create matrix for background potential temperature distribution
     theta_matrix = np.zeros((50,50))
 
-    ymin = sol_a[0,1]
-    ymax = sol_a[-1,1]
+    ymin = min(sol_a[:,1])
+    ymax = max(sol_a[:,1])
 
-    zmin = sol_a[0,2]
-    zmax = sol_a[-1,2]
+    zmin = min(sol_a[:,2])
+    zmax = max(sol_a[:,2])
 
     thetayvalues = np.linspace(ymin,ymax,50)
     thetazvalues = np.linspace(zmin,zmax,50)
@@ -134,6 +146,17 @@ def main(start, stop):
     for i in range(0, 50, 1):
         for j in range(0, 50, 1):
             theta_matrix[i,j] = theta(y=thetayvalues[j], z=thetazvalues[i])
+
+    print 'dthetady is:', dthetady*L
+    print 'dthetadz is:', dthetadz*H
+
+    gradient = (dthetadz*H)/(dthetady*L)
+    print 'gradient is:', gradient
+
+    normal = np.array((0, dthetady*L, dthetadz*H))
+    normalhat = normal/(la.norm(normal))
+
+    print 'normal to theta surfaces is:', normalhat
 
 ###############################################################################################
 
@@ -145,33 +168,15 @@ def main(start, stop):
     ax1.set_xlabel('x (L)')
     ax1.set_ylabel('y (L)')
     ax1.set_zlabel('z (H)')
-    ax1.plot(sol_a[:,0], sol_a[:,1], sol_a[:,2])
-    ax1.plot(sol_b[:,0], sol_b[:,1], sol_b[:,2])
-    ax1.plot(sol_c[:,0], sol_c[:,1], sol_c[:,2])
-    ax1.plot(sol_d[:,0], sol_d[:,1], sol_d[:,2])
-    ax1.plot(sol_e[:,0], sol_e[:,1], sol_e[:,2])
-
-    ax1.plot(sol_f[:,0], sol_f[:,1], sol_f[:,2])
-    ax1.plot(sol_g[:,0], sol_g[:,1], sol_g[:,2])
-    ax1.plot(sol_h[:,0], sol_h[:,1], sol_h[:,2])
-    ax1.plot(sol_i[:,0], sol_i[:,1], sol_i[:,2])
-    ax1.plot(sol_j[:,0], sol_j[:,1], sol_j[:,2])
+    for i in EFsolutions:
+        ax1.plot(i[:,0], i[:,1], i[:,2])
 
     #Projection in x-z plane
     ax2 = fig1.add_subplot(222)
     ax2.set_xlabel('x (L)')
     ax2.set_ylabel('z (H)')
-    ax2.plot(sol_a[:,0], sol_a[:,2])
-    ax2.plot(sol_b[:,0], sol_b[:,2])
-    ax2.plot(sol_c[:,0], sol_c[:,2])
-    ax2.plot(sol_d[:,0], sol_d[:,2])
-    ax2.plot(sol_e[:,0], sol_e[:,2])
-
-    ax2.plot(sol_f[:,0], sol_f[:,2])
-    ax2.plot(sol_g[:,0], sol_g[:,2])
-    ax2.plot(sol_h[:,0], sol_h[:,2])
-    ax2.plot(sol_i[:,0], sol_i[:,2])
-    ax2.plot(sol_j[:,0], sol_j[:,2])
+    for i in EFsolutions:
+        ax2.plot(i[:,0], i[:,2])
 
     #Projection in y-z plane
     ax3 = fig1.add_subplot(223)
@@ -179,34 +184,15 @@ def main(start, stop):
     ax3.set_ylabel('z (H)')
     isentropes1 = ax3.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
     plt.colorbar(isentropes1)
-    ax3.plot(sol_a[:,1], sol_a[:,2])
-    ax3.plot(sol_b[:,1], sol_b[:,2])
-    ax3.plot(sol_c[:,1], sol_c[:,2])
-    ax3.plot(sol_d[:,1], sol_d[:,2])
-    ax3.plot(sol_e[:,1], sol_e[:,2])
-
-    ax3.plot(sol_f[:,1], sol_f[:,2])
-    ax3.plot(sol_g[:,1], sol_g[:,2])
-    ax3.plot(sol_h[:,1], sol_h[:,2])
-    ax3.plot(sol_i[:,1], sol_i[:,2])
-    ax3.plot(sol_j[:,1], sol_j[:,2])
-
+    for i in EFsolutions:
+        ax3.plot(i[:,1], i[:,2])
 
     #Projection in x-y plane
     ax4 = fig1.add_subplot(224)
     ax4.set_xlabel('x (L)')
     ax4.set_ylabel('y (L)')
-    ax4.plot(sol_a[:,0], sol_a[:,1])
-    ax4.plot(sol_b[:,0], sol_b[:,1])
-    ax4.plot(sol_c[:,0], sol_c[:,1])
-    ax4.plot(sol_d[:,0], sol_d[:,1])
-    ax4.plot(sol_e[:,0], sol_e[:,1])
-
-    ax4.plot(sol_f[:,0], sol_f[:,1])
-    ax4.plot(sol_g[:,0], sol_g[:,1])
-    ax4.plot(sol_h[:,0], sol_h[:,1])
-    ax4.plot(sol_i[:,0], sol_i[:,1])
-    ax4.plot(sol_j[:,0], sol_j[:,1])
+    for i in EFsolutions:
+        ax4.plot(i[:,0], i[:,1])
 
 ###############################################################################################
 
@@ -218,33 +204,15 @@ def main(start, stop):
     ax5.set_xlabel('x (L)')
     ax5.set_ylabel('y (L)')
     ax5.set_zlabel('z (H)')
-    ax5.plot(rel_sol_a[:,0], rel_sol_a[:,1], rel_sol_a[:,2])
-    ax5.plot(rel_sol_b[:,0], rel_sol_b[:,1], rel_sol_b[:,2])
-    ax5.plot(rel_sol_c[:,0], rel_sol_c[:,1], rel_sol_c[:,2])
-    ax5.plot(rel_sol_d[:,0], rel_sol_d[:,1], rel_sol_d[:,2])
-    ax5.plot(rel_sol_e[:,0], rel_sol_e[:,1], rel_sol_e[:,2])
-
-    ax5.plot(rel_sol_f[:,0], rel_sol_f[:,1], rel_sol_f[:,2])
-    ax5.plot(rel_sol_g[:,0], rel_sol_g[:,1], rel_sol_g[:,2])
-    ax5.plot(rel_sol_h[:,0], rel_sol_h[:,1], rel_sol_h[:,2])
-    ax5.plot(rel_sol_i[:,0], rel_sol_i[:,1], rel_sol_i[:,2])
-    ax5.plot(rel_sol_j[:,0], rel_sol_j[:,1], rel_sol_j[:,2])
+    for i in WFsolutions:
+        ax5.plot(i[:,0], i[:,1], i[:,2])
 
     #Projection in x-z plane
     ax6 = fig2.add_subplot(222)
     ax6.set_xlabel('x (L)')
     ax6.set_ylabel('z (H)')
-    ax6.plot(rel_sol_a[:,0], rel_sol_a[:,2])
-    ax6.plot(rel_sol_b[:,0], rel_sol_b[:,2])
-    ax6.plot(rel_sol_c[:,0], rel_sol_c[:,2])
-    ax6.plot(rel_sol_d[:,0], rel_sol_d[:,2])
-    ax6.plot(rel_sol_e[:,0], rel_sol_e[:,2])
-
-    ax6.plot(rel_sol_f[:,0], rel_sol_f[:,2])
-    ax6.plot(rel_sol_g[:,0], rel_sol_g[:,2])
-    ax6.plot(rel_sol_h[:,0], rel_sol_h[:,2])
-    ax6.plot(rel_sol_i[:,0], rel_sol_i[:,2])
-    ax6.plot(rel_sol_j[:,0], rel_sol_j[:,2])
+    for i in WFsolutions:
+        ax6.plot(i[:,0], i[:,2])
 
     #Projection in y-z plane
     ax7 = fig2.add_subplot(223)
@@ -252,38 +220,19 @@ def main(start, stop):
     ax7.set_ylabel('z (H)')
     isentropes2 = ax7.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
     plt.colorbar(isentropes2)
-    ax7.plot(rel_sol_a[:,1], rel_sol_a[:,2])
-    ax7.plot(rel_sol_b[:,1], rel_sol_b[:,2])
-    ax7.plot(rel_sol_c[:,1], rel_sol_c[:,2])
-    ax7.plot(rel_sol_d[:,1], rel_sol_d[:,2])
-    ax7.plot(rel_sol_e[:,1], rel_sol_e[:,2])
-
-    ax7.plot(rel_sol_f[:,1], rel_sol_f[:,2])
-    ax7.plot(rel_sol_g[:,1], rel_sol_g[:,2])
-    ax7.plot(rel_sol_h[:,1], rel_sol_h[:,2])
-    ax7.plot(rel_sol_i[:,1], rel_sol_i[:,2])
-    ax7.plot(rel_sol_j[:,1], rel_sol_j[:,2])
-
+    for i in WFsolutions:
+        ax7.plot(i[:,1], i[:,2])
 
     #Projection in x-y plane
     ax8 = fig2.add_subplot(224)
     ax8.set_xlabel('x (L)')
     ax8.set_ylabel('y (L)')
-    ax8.plot(rel_sol_a[:,0], rel_sol_a[:,1])
-    ax8.plot(rel_sol_b[:,0], rel_sol_b[:,1])
-    ax8.plot(rel_sol_c[:,0], rel_sol_c[:,1])
-    ax8.plot(rel_sol_d[:,0], rel_sol_d[:,1])
-    ax8.plot(rel_sol_e[:,0], rel_sol_e[:,1])
-
-    ax8.plot(rel_sol_f[:,0], rel_sol_f[:,1])
-    ax8.plot(rel_sol_g[:,0], rel_sol_g[:,1])
-    ax8.plot(rel_sol_h[:,0], rel_sol_h[:,1])
-    ax8.plot(rel_sol_i[:,0], rel_sol_i[:,1])
-    ax8.plot(rel_sol_j[:,0], rel_sol_j[:,1])
+    for i in WFsolutions:
+        ax8.plot(i[:,0], i[:,1])
 
 ###############################################################################################
 
-    #Plot parcel separation with time
+    #Plot parcels a and b separation with time
 
     fig3 = plt.figure()
     fig3.suptitle('Parcel separation')
@@ -293,10 +242,10 @@ def main(start, stop):
     ax9.set_ylabel('separation')
     ax9.axhline(y=d_i,color='black',ls='dotted')
 
-
 ###############################################################################################
 
     #Plot background potential temperature distribution
+
     fig4 =plt.figure()
     plt.set_cmap('inferno')
     fig4.suptitle('Basic state potential temperature')
@@ -306,10 +255,43 @@ def main(start, stop):
     thetacontour = ax10.contourf(theta_matrix, origin='lower', aspect='auto', extent=[ymin,ymax,zmin,zmax])
     plt.colorbar(thetacontour)
 
+    ax10.plot(thetayvalues, gradient*thetayvalues) #THIS LINE SHOULD BE PERPENDICULAR TO THETA SURFACES
+
+###############################################################################################
+
+    #Earth frame/Wave frame comparison figure
+
+    fig5 = plt.figure()
+    ax11 = fig5.add_subplot(221, projection = '3d')
+    ax11.set_xlabel('x (L)')
+    ax11.set_ylabel('y (L)')
+    ax11.set_zlabel('z (H)')
+    for i in EFsolutions:
+        ax11.plot(i[:,0], i[:,1], i[:,2])
+
+    ax12 = fig5.add_subplot(222, projection = '3d')
+    ax12.set_xlabel('x (L)')
+    ax12.set_ylabel('y (L)')
+    ax12.set_zlabel('z (H)')
+    for i in WFsolutions:
+        ax12.plot(i[:,0], i[:,1], i[:,2])
+
+    ax13 = fig5.add_subplot(223)
+    ax13.set_xlabel('x (L)')
+    ax13.set_ylabel('y (L)')
+    for i in EFsolutions:
+        ax13.plot(i[:,0], i[:,1])
+
+    ax14 = fig5.add_subplot(224)
+    ax14.set_xlabel('x (L)')
+    ax14.set_ylabel('y (L)')
+    for i in WFsolutions:
+        ax14.plot(i[:,0], i[:,1])
+
     plt.show()
 
 ###############################################################################################
 
 #Run the programme
 
-main(start=0, stop=50)
+main(start=0, stop=60)

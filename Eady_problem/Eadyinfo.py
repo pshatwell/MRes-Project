@@ -1,6 +1,7 @@
 
 '''Script containing parameters and functions for Eady model scripts, following Vallis 2006.'''
 
+'''TRY EXPERIMENTING WITH U_0'''
 
 import numpy as np
 import cmath
@@ -12,11 +13,11 @@ import cmath
 f0 = -1e-4 #(s^-1) f-plane approximation (southern hemisphere)
 N = 2e-3 #(s^-1) buoyancy frequency (for SO, assuming uniform stratification)
 H = 1e3 #(m) height of upper boundary
-U_0 = 0.1 #(ms^(-1)) mean flow zonal velocity magnitude at upper boundary
+U_0 = 0.5 #(ms^(-1)) mean flow zonal velocity magnitude at upper boundary
 Lambda = U_0/H #(s^-1) uniform velocity shear in vertical direction
 L = np.abs((N*H)/f0) #(m) typical length scale given by deformation radius
 T = L/U_0 #(s) Eady timescale (about a week)
-k = (1.)/L  #(m^-1) zonal wavenumber
+k = 1./L  #(m^-1) zonal wavenumber
 l = (np.pi)/(2*L) #(m^-1) meridional wavenumber, defined for zonal channel
 mu = L*np.sqrt(k**2 + l**2) #dimensionless parameter governing vertical wave struture
 
@@ -27,6 +28,7 @@ g = 9.8 #(ms^(-2)) gravitational acceleration
 c = U_0/2. + (U_0/mu)*cmath.sqrt((mu/2. - (1./np.tanh(mu/2.)))*(mu/2. - np.tanh(mu/2.)))
 
 sigma = k*c.imag #(s^-1) growth rate
+#sigma = 0
 
 
 #Information to plot background theta distribution
