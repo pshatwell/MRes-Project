@@ -153,10 +153,40 @@ def main(start, stop):
     gradient = (dthetadz*H)/(dthetady*L)
     print 'gradient is:', gradient
 
+###############################################################################################
+
+    #Define normal to theta surfaces
+
     normal = np.array((0, dthetady*L, dthetadz*H))
     normalhat = normal/(la.norm(normal))
 
     print 'normal to theta surfaces is:', normalhat
+
+    sol_a_p = np.zeros_like(rel_sol_a)
+    sol_b_p = np.zeros_like(rel_sol_a)
+    sol_c_p = np.zeros_like(rel_sol_a)
+    sol_d_p = np.zeros_like(rel_sol_a)
+    sol_e_p = np.zeros_like(rel_sol_a)
+    sol_f_p = np.zeros_like(rel_sol_a)
+    sol_g_p = np.zeros_like(rel_sol_a)
+    sol_h_p = np.zeros_like(rel_sol_a)
+    sol_i_p = np.zeros_like(rel_sol_a)
+    sol_j_p = np.zeros_like(rel_sol_a)
+
+    #Project WF solutions onto theta surface
+    for i in range(len(t)):
+        sol_a_p[i] = rel_sol_a[i] - np.dot(rel_sol_a[i], normalhat)*normalhat
+        sol_b_p[i] = rel_sol_b[i] - np.dot(rel_sol_b[i], normalhat)*normalhat
+        sol_c_p[i] = rel_sol_c[i] - np.dot(rel_sol_c[i], normalhat)*normalhat
+        sol_d_p[i] = rel_sol_d[i] - np.dot(rel_sol_d[i], normalhat)*normalhat
+        sol_e_p[i] = rel_sol_e[i] - np.dot(rel_sol_e[i], normalhat)*normalhat
+        sol_f_p[i] = rel_sol_f[i] - np.dot(rel_sol_f[i], normalhat)*normalhat
+        sol_g_p[i] = rel_sol_g[i] - np.dot(rel_sol_g[i], normalhat)*normalhat
+        sol_h_p[i] = rel_sol_h[i] - np.dot(rel_sol_h[i], normalhat)*normalhat
+        sol_i_p[i] = rel_sol_i[i] - np.dot(rel_sol_i[i], normalhat)*normalhat
+        sol_j_p[i] = rel_sol_j[i] - np.dot(rel_sol_j[i], normalhat)*normalhat
+
+    projected_solutions = [sol_a_p, sol_b_p, sol_c_p, sol_d_p, sol_e_p, sol_f_p, sol_g_p, sol_h_p, sol_i_p, sol_j_p]
 
 ###############################################################################################
 
@@ -231,7 +261,7 @@ def main(start, stop):
         ax8.plot(i[:,0], i[:,1])
 
 ###############################################################################################
-
+    '''
     #Plot parcels a and b separation with time
 
     fig3 = plt.figure()
@@ -241,9 +271,10 @@ def main(start, stop):
     ax9.set_xlabel('time (T)')
     ax9.set_ylabel('separation')
     ax9.axhline(y=d_i,color='black',ls='dotted')
+    '''
 
 ###############################################################################################
-
+    '''
     #Plot background potential temperature distribution
 
     fig4 =plt.figure()
@@ -256,7 +287,7 @@ def main(start, stop):
     plt.colorbar(thetacontour)
 
     ax10.plot(thetayvalues, gradient*thetayvalues) #THIS LINE SHOULD BE PERPENDICULAR TO THETA SURFACES
-
+    '''
 ###############################################################################################
 
     #Earth frame/Wave frame comparison figure
@@ -287,6 +318,19 @@ def main(start, stop):
     ax14.set_ylabel('y (L)')
     for i in WFsolutions:
         ax14.plot(i[:,0], i[:,1])
+
+###############################################################################################
+
+    #WF isentropic surface projection figure
+
+    fig6 = plt.figure()
+    ax15 = fig6.add_subplot(111, projection = '3d')
+    ax15.set_xlabel('x (L)')
+    ax15.set_ylabel('y (L)')
+    ax15.set_zlabel('z (H)')
+    for i in projected_solutions:
+        ax15.plot(i[:,0], i[:,1], i[:,2])
+
 
     plt.show()
 
