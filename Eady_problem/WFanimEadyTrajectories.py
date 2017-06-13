@@ -7,7 +7,7 @@ from scipy.integrate import odeint
 import numpy.linalg as la
 
 import matplotlib.animation as anim
-#plt.rcParams['animation.ffmpeg_path'] = '/usr/local/bin/ffmpeg'
+plt.rcParams['animation.ffmpeg_path'] = '/usr/local/bin/ffmpeg'
 
 from Eadyinfo import *
 
@@ -27,8 +27,8 @@ def velocity3d(s,t):
 
 #Define timesteps for integration
 
-tmin = 10
-tmax = 55
+tmin = 0
+tmax = 60
 
 t = np.linspace(tmin, tmax, 500)
 
@@ -36,20 +36,27 @@ t = np.linspace(tmin, tmax, 500)
 
 #Define initial positions of parcels
 
-top = 0.52
-bottom = 0.48
+#setting both 'cold' and 'warm' parcels off at the same height but different y
+#seems to give closest reproduction of Green picture
+top = 0.5
+bottom = 0.5
+x1 = 0
+xshift = np.pi/(k*L) #nondimensional shift of half a wavelength
+y1 = 0.85
 
-s0_a = np.array((0, 0.8, top))
-s0_b = np.array((0.5, 0.8, top))
-s0_c = np.array((1, 0.8, top))
-s0_d = np.array((1.5, 0.8, top))
-s0_e = np.array((2, 0.8, top))
+#Set of 5 'warm' parcels
+s0_a = np.array((x1, y1, top))
+s0_b = np.array((x1+0.5, y1, top))
+s0_c = np.array((x1+1, y1, top))
+s0_d = np.array((x1+1.5, y1, top))
+s0_e = np.array((x1+2, y1, top))
 
-s0_f = np.array((3, -0.8, bottom))
-s0_g = np.array((3.5, -0.8, bottom))
-s0_h = np.array((4, -0.8, bottom))
-s0_i = np.array((4.5, -0.8, bottom))
-s0_j = np.array((5, -0.8, bottom))
+#Set of 5 'cold' parcels
+s0_f = np.array((x1+xshift, -y1, bottom))
+s0_g = np.array((x1+xshift+0.5, -y1, bottom))
+s0_h = np.array((x1+xshift+1, -y1, bottom))
+s0_i = np.array((x1+xshift+1.5, -y1, bottom))
+s0_j = np.array((x1+xshift+2, -y1, bottom))
 
 ###############################################################################################
 
@@ -92,21 +99,38 @@ rel_solutions = [rel_sol_a, rel_sol_b, rel_sol_c, rel_sol_d, rel_sol_e, rel_sol_
 
 ###############################################################################################
 
-#Create matrix for background potential temperature distribution
-theta_matrix = np.zeros((50,50))
+#Define normal to theta surfaces
 
-ymin = min(sol_a[:,1])
-ymax = max(sol_a[:,1])
+normal = np.array((0, dthetady*L, dthetadz*H))
+normalhat = normal/(la.norm(normal))
 
-zmin = min(sol_a[:,2])
-zmax = max(sol_a[:,2])
+print 'normal to theta surfaces is:', normalhat
 
-thetayvalues = np.linspace(ymin,ymax,50)
-thetazvalues = np.linspace(zmin,zmax,50)
+sol_a_p = np.zeros_like(rel_sol_a)
+sol_b_p = np.zeros_like(rel_sol_a)
+sol_c_p = np.zeros_like(rel_sol_a)
+sol_d_p = np.zeros_like(rel_sol_a)
+sol_e_p = np.zeros_like(rel_sol_a)
+sol_f_p = np.zeros_like(rel_sol_a)
+sol_g_p = np.zeros_like(rel_sol_a)
+sol_h_p = np.zeros_like(rel_sol_a)
+sol_i_p = np.zeros_like(rel_sol_a)
+sol_j_p = np.zeros_like(rel_sol_a)
 
-for i in range(0, 50, 1):
-    for j in range(0, 50, 1):
-        theta_matrix[i,j] = theta(y=thetayvalues[j], z=thetazvalues[i])
+#Project WF solutions onto theta surface
+for i in range(len(t)):
+    sol_a_p[i] = rel_sol_a[i] - np.dot(rel_sol_a[i], normalhat)*normalhat
+    sol_b_p[i] = rel_sol_b[i] - np.dot(rel_sol_b[i], normalhat)*normalhat
+    sol_c_p[i] = rel_sol_c[i] - np.dot(rel_sol_c[i], normalhat)*normalhat
+    sol_d_p[i] = rel_sol_d[i] - np.dot(rel_sol_d[i], normalhat)*normalhat
+    sol_e_p[i] = rel_sol_e[i] - np.dot(rel_sol_e[i], normalhat)*normalhat
+    sol_f_p[i] = rel_sol_f[i] - np.dot(rel_sol_f[i], normalhat)*normalhat
+    sol_g_p[i] = rel_sol_g[i] - np.dot(rel_sol_g[i], normalhat)*normalhat
+    sol_h_p[i] = rel_sol_h[i] - np.dot(rel_sol_h[i], normalhat)*normalhat
+    sol_i_p[i] = rel_sol_i[i] - np.dot(rel_sol_i[i], normalhat)*normalhat
+    sol_j_p[i] = rel_sol_j[i] - np.dot(rel_sol_j[i], normalhat)*normalhat
+
+projected_solutions = [sol_a_p, sol_b_p, sol_c_p, sol_d_p, sol_e_p, sol_f_p, sol_g_p, sol_h_p, sol_i_p, sol_j_p]
 
 ###############################################################################################
 
@@ -117,9 +141,9 @@ plt.set_cmap('inferno')
 fig1.suptitle('Wave frame')
 ax1 = p3.Axes3D(fig1)
 
-ax1.set_xlim3d([-6,-1])
-ax1.set_ylim3d([-1,1])
-ax1.set_zlim3d([0,1])
+ax1.set_xlim3d([0, 6])
+ax1.set_ylim3d([-1, 1])
+ax1.set_zlim3d([-0.25, 0.25])
 
 ax1.set_xlabel('x (L)')
 ax1.set_ylabel('y (L)')
@@ -172,9 +196,9 @@ def init():
 #Define animation function
 def Eadyanimate(i):
     for m in range(len(positions)):
-        positions[m][0].append(rel_solutions[m][i,0])
-        positions[m][1].append(rel_solutions[m][i,1])
-        positions[m][2].append(rel_solutions[m][i,2])
+        positions[m][0].append(projected_solutions[m][i,0])
+        positions[m][1].append(projected_solutions[m][i,1])
+        positions[m][2].append(projected_solutions[m][i,2])
 
         lines[m].set_data(positions[m][0], positions[m][1])
         lines[m].set_3d_properties(positions[m][2])

@@ -27,8 +27,8 @@ def velocity3d(s,t):
 
 #Define timesteps for integration
 
-tmin = 10
-tmax = 55
+tmin = 0
+tmax = 60
 
 t = np.linspace(tmin, tmax, 500)
 
@@ -36,20 +36,27 @@ t = np.linspace(tmin, tmax, 500)
 
 #Define initial positions of parcels
 
-top = 0.52
-bottom = 0.48
+#setting both 'cold' and 'warm' parcels off at the same height but different y
+#seems to give closest reproduction of Green picture
+top = 0.5
+bottom = 0.5
+x1 = 0
+xshift = np.pi/(k*L) #nondimensional shift of half a wavelength
+y1 = 0.85
 
-s0_a = np.array((0, 0.8, top))
-s0_b = np.array((0.5, 0.8, top))
-s0_c = np.array((1, 0.8, top))
-s0_d = np.array((1.5, 0.8, top))
-s0_e = np.array((2, 0.8, top))
+#Set of 5 'warm' parcels
+s0_a = np.array((x1, y1, top))
+s0_b = np.array((x1+0.5, y1, top))
+s0_c = np.array((x1+1, y1, top))
+s0_d = np.array((x1+1.5, y1, top))
+s0_e = np.array((x1+2, y1, top))
 
-s0_f = np.array((3, -0.8, bottom))
-s0_g = np.array((3.5, -0.8, bottom))
-s0_h = np.array((4, -0.8, bottom))
-s0_i = np.array((4.5, -0.8, bottom))
-s0_j = np.array((5, -0.8, bottom))
+#Set of 5 'cold' parcels
+s0_f = np.array((x1+xshift, -y1, bottom))
+s0_g = np.array((x1+xshift+0.5, -y1, bottom))
+s0_h = np.array((x1+xshift+1, -y1, bottom))
+s0_i = np.array((x1+xshift+1.5, -y1, bottom))
+s0_j = np.array((x1+xshift+2, -y1, bottom))
 
 ###############################################################################################
 
@@ -71,24 +78,6 @@ solutions = [sol_a, sol_b, sol_c, sol_d, sol_e, sol_f, sol_g, sol_h, sol_i, sol_
 
 ###############################################################################################
 
-#Create matrix for background potential temperature distribution
-theta_matrix = np.zeros((50,50))
-
-ymin = min(sol_a[:,1])
-ymax = max(sol_a[:,1])
-
-zmin = min(sol_a[:,2])
-zmax = max(sol_a[:,2])
-
-thetayvalues = np.linspace(ymin,ymax,50)
-thetazvalues = np.linspace(zmin,zmax,50)
-
-for i in range(0, 50, 1):
-    for j in range(0, 50, 1):
-        theta_matrix[i,j] = theta(y=thetayvalues[j], z=thetazvalues[i])
-
-###############################################################################################
-
 #Define figure to plot onto for animation
 
 fig1 = plt.figure()
@@ -96,7 +85,7 @@ plt.set_cmap('inferno')
 fig1.suptitle('Earth frame')
 ax1 = p3.Axes3D(fig1)
 
-ax1.set_xlim3d([0,26])
+ax1.set_xlim3d([0,30])
 ax1.set_ylim3d([-1,1])
 ax1.set_zlim3d([0,1])
 

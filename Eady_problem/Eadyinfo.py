@@ -1,8 +1,6 @@
 
 '''Script containing parameters and functions for Eady model scripts, following Vallis 2006.'''
 
-'''TRY EXPERIMENTING WITH U_0'''
-
 import numpy as np
 import cmath
 

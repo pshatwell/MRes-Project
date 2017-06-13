@@ -1,5 +1,6 @@
 
-'''Script to plot fluid parcel trajectories for Eady model.'''
+'''Script to demonstrate Green's idea of isentropic relative flow
+using unstable solutions of the Eady model.'''
 
 import numpy as np
 import scipy as sp
@@ -40,7 +41,7 @@ def main(start, stop):
 
     #Define timesteps for integration
 
-    tmin = start #WHAT SHOULD THIS BE? DO WE WANT THERE TO ALREADY BE A LARGE INSTABILITY?
+    tmin = start #Should this necessarily be zero?
     tmax = stop
 
     t = np.linspace(tmin, tmax, 500)
@@ -51,25 +52,24 @@ def main(start, stop):
 
     #setting both 'cold' and 'warm' parcels off at the same height but different y
     #seems to give closest reproduction of Green picture
-    top = 0.5
-    bottom = 0.5
-    x1 = 0
+    zpos = 0.5
+    xpos = 0
     xshift = np.pi/(k*L) #nondimensional shift of half a wavelength
-    y1 = 0.85
+    ypos = 0.85
 
-    #Set of 5 'warm' parcels
-    s0_a = np.array((x1, y1, top))
-    s0_b = np.array((x1+0.5, y1, top))
-    s0_c = np.array((x1+1, y1, top))
-    s0_d = np.array((x1+1.5, y1, top))
-    s0_e = np.array((x1+2, y1, top))
+    #Set of 5 'warm' parcels (positive y)
+    s0_a = np.array((xpos, ypos, zpos ))
+    s0_b = np.array((xpos+0.5, ypos, zpos))
+    s0_c = np.array((xpos+1, ypos, zpos))
+    s0_d = np.array((xpos+1.5, ypos, zpos))
+    s0_e = np.array((xpos+2, ypos, zpos))
 
-    #Set of 5 'cold' parcels
-    s0_f = np.array((x1+xshift, -y1, bottom))
-    s0_g = np.array((x1+xshift+0.5, -y1, bottom))
-    s0_h = np.array((x1+xshift+1, -y1, bottom))
-    s0_i = np.array((x1+xshift+1.5, -y1, bottom))
-    s0_j = np.array((x1+xshift+2, -y1, bottom))
+    #Set of 5 'cold' parcels (negative y)
+    s0_f = np.array((xpos+xshift, -ypos, zpos))
+    s0_g = np.array((xpos+xshift+0.5, -ypos, zpos))
+    s0_h = np.array((xpos+xshift+1, -ypos, zpos))
+    s0_i = np.array((xpos+xshift+1.5, -ypos, zpos))
+    s0_j = np.array((xpos+xshift+2, -ypos, zpos))
 
 ###############################################################################################
 
@@ -325,7 +325,7 @@ def main(start, stop):
 
     fig6 = plt.figure()
     fig6.suptitle('Relative motion within isentropic surface')
-    ax15 = fig6.add_subplot(121, projection = '3d')
+    ax15 = fig6.add_subplot(111, projection = '3d')
     ax15.set_xlabel('x (L)')
     ax15.set_ylabel('y (L)')
     ax15.set_zlabel('z (H)')
@@ -336,28 +336,26 @@ def main(start, stop):
 
     times = np.arange(0,500,20)
 
+    '''
     #Add a dot along trajectories every 20 timesteps to indicate time evolution
     for i in range(len(times)):
         for j in projected_solutions:
             ax15.scatter(j[times[i],0], j[times[i],1], j[times[i],2], marker='o', c='black', s=8)
+    '''
+###############################################################################################
 
-    #WF warm and cold trajectories shifted on top of each other
-    #Comparison to show most of the motion is within an isentropic surface
-    ax16 = fig6.add_subplot(122, projection = '3d')
-    ax16.set_xlabel('x (L)')
-    ax16.set_ylabel('y (L)')
-    ax16.set_zlabel('z (H)')
+    #Plot of meridional oscillation extent with time
+    fig7 = plt.figure()
+    fig7.suptitle('Meridional extent with time')
+    ax16 = fig7.add_subplot(111)
+    meanyseparation = np.zeros_like(t)
 
-    for i in warmWFsolutions:
-        ax16.plot(i[:,0], i[:,1], i[:,2] - 0.16)
-    for i in coldWFsolutions:
-        ax16.plot(i[:,0], i[:,1], i[:,2] + 0.16)
+    for i in range(len(t)):
+        meanyseparation[i]=(1./len(WFsolutions))*np.sum((j[i,1] - j[0,1])**2 for j in WFsolutions)
 
-
-    #Figure to see meridional oscillations
-    #fig7 = plt.figure()
-    #ax16 = fig7.add_subplot(111)
-    #ax16.plot(t, rel_sol_a[:,1] - rel_sol_a[0,1])
+    for i in WFsolutions:
+        ax16.plot(t, (i[:,1] - i[0,1])**2)
+        ax16.plot(t, meanyseparation, linewidth=2.5, color='black')
 
 
     plt.show()
@@ -366,4 +364,4 @@ def main(start, stop):
 
 #Run the programme
 
-main(start=0, stop=60) #60 time periods is ~28 days
+main(start=0, stop=70) #60 time periods is ~28 days
