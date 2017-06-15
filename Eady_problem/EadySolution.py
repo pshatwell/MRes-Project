@@ -89,6 +89,16 @@ def main(t):
             for m in range(0, xlength, 1):
                 wprime_matrix[i,j,m] = wprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time)
 
+
+    #Create empty matrix for thetaprime
+    thetaprime_matrix = np.zeros((zlength,ylength,xlength))
+
+    #Evaluate thetaprime matrix values
+    for i in range(0, zlength, 1):
+        for j in range(0, ylength, 1):
+            for m in range(0, xlength, 1):
+                thetaprime_matrix[i,j,m] = thetaprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time)
+
 ###############################################################################################
 
     #Plot the streamfunction and vertical velocity perturbations
@@ -202,6 +212,34 @@ def main(t):
     #Plotting in y-z plane
     yz_contour_w = ax12.contourf(wprime_matrix[:,:,0], origin='lower', aspect='auto', extent = [ymin,ymax,zmin,zmax])
     plt.colorbar(yz_contour_w)
+
+###############################################################################################
+
+    #Plot potential temperature perturbation
+
+    fig5 = plt.figure()
+    plt.set_cmap('inferno')
+    fig5.suptitle('thetaprime')
+    ax13 = fig5.add_subplot(311)
+    ax13.set_xlabel('x (L)')
+    ax13.set_ylabel('y (L)')
+    #Plotting in x-y plane at z=H/2
+    xy_contour_theta = ax13.contourf(thetaprime_matrix[24,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
+    plt.colorbar(xy_contour_theta)
+
+    ax14 = fig5.add_subplot(312)
+    ax14.set_xlabel('x (L)')
+    ax14.set_ylabel('z (H)')
+    #Plotting in x-z plane
+    xz_contour_theta = ax14.contourf(thetaprime_matrix[:,0,:], origin='lower', aspect='auto', extent = [xmin,xmax,zmin,zmax])
+    plt.colorbar(xz_contour_theta)
+
+    ax15 = fig5.add_subplot(313)
+    ax15.set_xlabel('y (L)')
+    ax15.set_ylabel('z (H)')
+    #Plotting in y-z plane
+    yz_contour_theta = ax15.contourf(thetaprime_matrix[:,:,0], origin='lower', aspect='auto', extent = [ymin,ymax,zmin,zmax])
+    plt.colorbar(yz_contour_theta)
 
     plt.show()
 

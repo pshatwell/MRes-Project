@@ -69,6 +69,10 @@ def umeanflow(z):
 def theta(y,z):
     return theta0 + dthetady*L*y + dthetadz*H*z
 
+#Theta perturbation, Gill 13.2.5
+def thetaprime(x,y,z,t):
+    return (1./(alpha*g))*(dphi_rdz(z)*np.cos(k*(L*x - c.real*T*t)) - dphi_idz(z)*np.sin(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t)
+
 
 #Define nondimensional velocity perturbations (see notebook for calculations)
 def uprime(x,y,z,t):

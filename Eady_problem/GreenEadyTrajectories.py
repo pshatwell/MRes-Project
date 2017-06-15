@@ -2,6 +2,8 @@
 '''Script to demonstrate Green's idea of isentropic relative flow
 using unstable solutions of the Eady model.'''
 
+'''THETA IS NOT MATERIALLY CONSERVED AT THE MOMENT. LOOK AT THIS.'''
+
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -26,7 +28,7 @@ if sigma != 0:
 
 ###############################################################################################
 
-def main(start, stop):
+def main(start, stop, zpos):
 
     #Define velocity function for 3d parcel trajectories
 
@@ -50,12 +52,13 @@ def main(start, stop):
 
     #Define initial positions of parcels
 
-    #setting both 'cold' and 'warm' parcels off at the same height but different y
+    #Setting both 'cold' and 'warm' parcels off at the same height but different y
     #seems to give closest reproduction of Green picture
-    zpos = 0.5
+
+    #zpos = 0.01 #zpos=0.5 determines steering level, i.e. where c.real matches mean flow speed
     xpos = 0
     xshift = np.pi/(k*L) #nondimensional shift of half a wavelength
-    ypos = 0.85
+    ypos = 0.8
 
     #Set of 5 'warm' parcels (positive y)
     s0_a = np.array((xpos, ypos, zpos ))
@@ -112,7 +115,7 @@ def main(start, stop):
     shift[:,0] = -c.real*t*(T/L) #Factor of (T/L) to make nondimensional
 
     #Define new x-shifted trajectories
-    rel_sol_a = sol_a + shift
+    rel_sol_a = sol_a + shift #rel for relative motion
     rel_sol_b = sol_b + shift
     rel_sol_c = sol_c + shift
     rel_sol_d = sol_d + shift
@@ -154,14 +157,21 @@ def main(start, stop):
 
 ###############################################################################################
 
-    #Define normal to theta surfaces
+    #Define normals to project trajectories onto surfaces
 
+    #Normal of theta surface
     normal = np.array((0, dthetady*L, dthetadz*H))
     normalhat = normal/(la.norm(normal))
 
-    print 'normal to theta surfaces is:', normalhat
+    #Normal to surface at half the slope of theta surface
+    #Maximum energy release for baroclinic instability typically within this half-slope surface
+    normal_i = np.array((0, dthetady*L, 2*dthetadz*H)) #i for instability
+    normal_ihat = normal_i/(la.norm(normal_i))
 
-    sol_a_p = np.zeros_like(rel_sol_a)
+    print 'normal to theta surfaces is:', normalhat
+    print 'normal to half-slope surface is:', normal_ihat
+
+    sol_a_p = np.zeros_like(rel_sol_a) #p for projected
     sol_b_p = np.zeros_like(rel_sol_a)
     sol_c_p = np.zeros_like(rel_sol_a)
     sol_d_p = np.zeros_like(rel_sol_a)
@@ -171,6 +181,17 @@ def main(start, stop):
     sol_h_p = np.zeros_like(rel_sol_a)
     sol_i_p = np.zeros_like(rel_sol_a)
     sol_j_p = np.zeros_like(rel_sol_a)
+
+    sol_a_pi = np.zeros_like(rel_sol_a) #i for instability
+    sol_b_pi = np.zeros_like(rel_sol_a)
+    sol_c_pi = np.zeros_like(rel_sol_a)
+    sol_d_pi = np.zeros_like(rel_sol_a)
+    sol_e_pi = np.zeros_like(rel_sol_a)
+    sol_f_pi = np.zeros_like(rel_sol_a)
+    sol_g_pi = np.zeros_like(rel_sol_a)
+    sol_h_pi = np.zeros_like(rel_sol_a)
+    sol_i_pi = np.zeros_like(rel_sol_a)
+    sol_j_pi = np.zeros_like(rel_sol_a)
 
     #Project WF solutions onto theta surface
     for i in range(len(t)):
@@ -185,7 +206,21 @@ def main(start, stop):
         sol_i_p[i] = rel_sol_i[i] - np.dot(rel_sol_i[i], normalhat)*normalhat
         sol_j_p[i] = rel_sol_j[i] - np.dot(rel_sol_j[i], normalhat)*normalhat
 
+    #Project WF solutions onto sheet at half-slope of theta surface
+    for i in range(len(t)):
+        sol_a_pi[i] = rel_sol_a[i] - np.dot(rel_sol_a[i], normal_ihat)*normal_ihat
+        sol_b_pi[i] = rel_sol_b[i] - np.dot(rel_sol_b[i], normal_ihat)*normal_ihat
+        sol_c_pi[i] = rel_sol_c[i] - np.dot(rel_sol_c[i], normal_ihat)*normal_ihat
+        sol_d_pi[i] = rel_sol_d[i] - np.dot(rel_sol_d[i], normal_ihat)*normal_ihat
+        sol_e_pi[i] = rel_sol_e[i] - np.dot(rel_sol_e[i], normal_ihat)*normal_ihat
+        sol_f_pi[i] = rel_sol_f[i] - np.dot(rel_sol_f[i], normal_ihat)*normal_ihat
+        sol_g_pi[i] = rel_sol_g[i] - np.dot(rel_sol_g[i], normal_ihat)*normal_ihat
+        sol_h_pi[i] = rel_sol_h[i] - np.dot(rel_sol_h[i], normal_ihat)*normal_ihat
+        sol_i_pi[i] = rel_sol_i[i] - np.dot(rel_sol_i[i], normal_ihat)*normal_ihat
+        sol_j_pi[i] = rel_sol_j[i] - np.dot(rel_sol_j[i], normal_ihat)*normal_ihat
+
     projected_solutions = [sol_a_p, sol_b_p, sol_c_p, sol_d_p, sol_e_p, sol_f_p, sol_g_p, sol_h_p, sol_i_p, sol_j_p]
+    projected_solutions_i = [sol_a_pi, sol_b_pi, sol_c_pi, sol_d_pi, sol_e_pi, sol_f_pi, sol_g_pi, sol_h_pi, sol_i_pi, sol_j_pi]
 
 ###############################################################################################
 
@@ -202,6 +237,7 @@ def main(start, stop):
 
     #Projection in x-z plane
     ax2 = fig1.add_subplot(222)
+    ax2.set_title('x-z plane', fontsize=10)
     ax2.set_xlabel('x (L)')
     ax2.set_ylabel('z (H)')
     for i in EFsolutions:
@@ -209,6 +245,7 @@ def main(start, stop):
 
     #Projection in y-z plane
     ax3 = fig1.add_subplot(223)
+    ax3.set_title('y-z plane', fontsize=10)
     ax3.set_xlabel('y (L)')
     ax3.set_ylabel('z (H)')
     isentropes1 = ax3.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
@@ -218,6 +255,7 @@ def main(start, stop):
 
     #Projection in x-y plane
     ax4 = fig1.add_subplot(224)
+    ax4.set_title('x-y plane', fontsize=10)
     ax4.set_xlabel('x (L)')
     ax4.set_ylabel('y (L)')
     for i in EFsolutions:
@@ -238,6 +276,7 @@ def main(start, stop):
 
     #Projection in x-z plane
     ax6 = fig2.add_subplot(222)
+    ax6.set_title('x-z plane', fontsize=10)
     ax6.set_xlabel('x (L)')
     ax6.set_ylabel('z (H)')
     for i in WFsolutions:
@@ -245,6 +284,7 @@ def main(start, stop):
 
     #Projection in y-z plane
     ax7 = fig2.add_subplot(223)
+    ax7.set_title('y-z plane', fontsize=10)
     ax7.set_xlabel('y (L)')
     ax7.set_ylabel('z (H)')
     isentropes2 = ax7.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
@@ -254,6 +294,7 @@ def main(start, stop):
 
     #Projection in x-y plane
     ax8 = fig2.add_subplot(224)
+    ax8.set_title('x-y plane', fontsize=10)
     ax8.set_xlabel('x (L)')
     ax8.set_ylabel('y (L)')
     for i in WFsolutions:
@@ -292,8 +333,9 @@ def main(start, stop):
     #Earth frame/Wave frame comparison figure
 
     fig5 = plt.figure()
-    fig5.suptitle('Earth frame, left; and Wave frame, right')
+    fig5.suptitle('Earth frame/Wave frame comparison')
     ax11 = fig5.add_subplot(221, projection = '3d')
+    ax11.set_title('Earth frame motion', fontsize=10)
     ax11.set_xlabel('x (L)')
     ax11.set_ylabel('y (L)')
     ax11.set_zlabel('z (H)')
@@ -301,6 +343,7 @@ def main(start, stop):
         ax11.plot(i[:,0], i[:,1], i[:,2])
 
     ax12 = fig5.add_subplot(222, projection = '3d')
+    ax12.set_title('Wave frame motion', fontsize=10)
     ax12.set_xlabel('x (L)')
     ax12.set_ylabel('y (L)')
     ax12.set_zlabel('z (H)')
@@ -324,39 +367,103 @@ def main(start, stop):
     #WF isentropic surface projection figure, THIS IS THE GREEN PICTURE WE WANT
 
     fig6 = plt.figure()
-    fig6.suptitle('Relative motion within isentropic surface')
+    fig6.suptitle('Relative motion within surface at half-slope to isentropes')
     ax15 = fig6.add_subplot(111, projection = '3d')
     ax15.set_xlabel('x (L)')
     ax15.set_ylabel('y (L)')
     ax15.set_zlabel('z (H)')
     #for i in WFsolutions:
     #    ax15.plot(i[:,0], i[:,1], i[:,2])
-    for i in projected_solutions:
-        ax15.plot(i[:,0], i[:,1], i[:,2])
+    #for i in projected_solutions:
+    #    ax15.plot(i[:,0], i[:,1], i[:,2])
+    for j in projected_solutions_i:
+        ax15.plot(j[:,0], j[:,1], j[:,2])
 
     times = np.arange(0,500,20)
 
-    '''
     #Add a dot along trajectories every 20 timesteps to indicate time evolution
     for i in range(len(times)):
-        for j in projected_solutions:
+        for j in projected_solutions_i:
             ax15.scatter(j[times[i],0], j[times[i],1], j[times[i],2], marker='o', c='black', s=8)
-    '''
+
 ###############################################################################################
 
-    #Plot of meridional oscillation extent with time
+    #Plot of oscillation growth with time
+
     fig7 = plt.figure()
-    fig7.suptitle('Meridional extent with time')
-    ax16 = fig7.add_subplot(111)
+    fig7.suptitle('Growth of oscillations with time')
+
+    ax16 = fig7.add_subplot(311)
+    ax16.set_title('Zonal extent', fontsize=10)
+    ax16.set_ylabel('(x-x0)^2')
+
+    ax17 = fig7.add_subplot(312)
+    ax17.set_title('Meridional extent', fontsize=10)
+    ax17.set_ylabel('(y-y0)^2')
+
+    ax18 = fig7.add_subplot(313)
+    ax18.set_title('Vertical extent', fontsize=10)
+    ax18.set_xlabel('time (T)')
+    ax18.set_ylabel('(z-z0)^2')
+
+    meanxseparation = np.zeros_like(t)
     meanyseparation = np.zeros_like(t)
+    meanzseparation = np.zeros_like(t)
 
     for i in range(len(t)):
+        meanxseparation[i]=(1./len(WFsolutions))*np.sum((j[i,0] - j[0,0])**2 for j in WFsolutions)
         meanyseparation[i]=(1./len(WFsolutions))*np.sum((j[i,1] - j[0,1])**2 for j in WFsolutions)
+        meanzseparation[i]=(1./len(WFsolutions))*np.sum((j[i,2] - j[0,2])**2 for j in WFsolutions)
 
     for i in WFsolutions:
-        ax16.plot(t, (i[:,1] - i[0,1])**2)
-        ax16.plot(t, meanyseparation, linewidth=2.5, color='black')
+        ax16.plot(t, (i[:,0] - i[0,0])**2)
+        ax16.plot(t, meanxseparation, linewidth=2, color='black')
 
+        ax17.plot(t, (i[:,1] - i[0,1])**2)
+        ax17.plot(t, meanyseparation, linewidth=2, color='black')
+
+        ax18.plot(t, (i[:,2] - i[0,2])**2)
+        ax18.plot(t, meanzseparation, linewidth=2, color='black')
+
+###############################################################################################
+
+    #Plot of mean parcel displacement with time
+
+    displacement = np.zeros_like(t)
+    for i in range(len(t)):
+        displacement[i] = np.sqrt(meanxseparation[i] + meanyseparation[i] + meanzseparation[i]) #Note lack of 'squares' as separations are already distances squared
+
+    fig8 = plt.figure()
+    fig8.suptitle('Evolution of mean parcel displacement')
+    ax19 = fig8.add_subplot(111)
+    ax19.set_xlabel('time (T)')
+    ax19.set_ylabel('displacement')
+    ax19.plot(t, displacement)
+
+###############################################################################################
+
+    #Plotting total theta (i.e. background theta plus thetaprime) for parcels with time
+
+    '''THIS NEEDS TO BE MATERIALLY CONSERVED, NO?
+    HOW CAN IT BE WHEN THETAPRIME GROWS EXPONENTIALLY?'''
+
+    absolutetheta_a = np.zeros_like(t)
+    absolutetheta_b = np.zeros_like(t)
+    absolutetheta_c = np.zeros_like(t)
+
+    absolutethetas = [absolutetheta_a, absolutetheta_b, absolutetheta_c]
+
+    for i in range(len(t)):
+        absolutetheta_a[i] = theta(y=rel_sol_a[i,1], z=rel_sol_a[i,2]) + thetaprime(x=rel_sol_a[i,0], y=rel_sol_a[i,1], z=rel_sol_a[i,2], t=t[i])
+        absolutetheta_b[i] = theta(y=rel_sol_b[i,1], z=rel_sol_b[i,2]) + thetaprime(x=rel_sol_b[i,0], y=rel_sol_b[i,1], z=rel_sol_b[i,2], t=t[i])
+        absolutetheta_c[i] = theta(y=rel_sol_c[i,1], z=rel_sol_c[i,2]) + thetaprime(x=rel_sol_c[i,0], y=rel_sol_c[i,1], z=rel_sol_c[i,2], t=t[i])
+
+    fig9 = plt.figure()
+    ax20 = fig9.add_subplot(111)
+    ax20.set_xlabel('time (T)')
+    ax20.set_ylabel('Absolute theta (K)')
+    for i in absolutethetas:
+        ax20.plot(t, i)
 
     plt.show()
 
@@ -364,4 +471,4 @@ def main(start, stop):
 
 #Run the programme
 
-main(start=0, stop=70) #60 time periods is ~28 days
+main(start=10, stop=60, zpos=0.9) #60 time periods is ~28 days
