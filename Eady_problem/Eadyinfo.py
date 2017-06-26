@@ -1,8 +1,11 @@
 
 '''Script containing parameters and functions for Eady model scripts, following Vallis 2006.'''
+from __future__ import division
 
 import numpy as np
 import cmath
+
+'''EXPERIMENT WITH U_0''' #have been using 0.5 for a while
 
 ################################# PHYSICAL PARAMETERS #############################################################
 
@@ -11,7 +14,7 @@ import cmath
 f0 = -1e-4 #(s^-1) f-plane approximation (southern hemisphere)
 N = 2e-3 #(s^-1) buoyancy frequency (for SO, assuming uniform stratification)
 H = 1e3 #(m) height of upper boundary
-U_0 = 0.5 #(ms^(-1)) mean flow zonal velocity magnitude at upper boundary
+U_0 = 0.15 #(ms^(-1)) mean flow zonal velocity magnitude at upper boundary, faster to better represent eddy velocities in ACC
 Lambda = U_0/H #(s^-1) uniform velocity shear in vertical direction
 L = np.abs((N*H)/f0) #(m) typical length scale given by deformation radius
 T = L/U_0 #(s) Eady timescale (about a week)
@@ -28,11 +31,11 @@ c = U_0/2. + (U_0/mu)*cmath.sqrt((mu/2. - (1./np.tanh(mu/2.)))*(mu/2. - np.tanh(
 sigma = k*c.imag #(s^-1) growth rate
 #sigma = 0
 
-
 #Information to plot background theta distribution
 theta0 = 280. #Reference temperature value
 dthetadz = (N**2)/(g*alpha) #Gill 6.17.24, buoyancy frequency definition
 dthetady = (-f0*Lambda)/(g*alpha) #Gill 7.7.10, thermal wind
+
 
 ################################# FUNCTIONS #############################################################
 
@@ -73,13 +76,17 @@ def theta(y,z):
 def thetaprime(x,y,z,t):
     return (1./(alpha*g))*(dphi_rdz(z)*np.cos(k*(L*x - c.real*T*t)) - dphi_idz(z)*np.sin(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t)
 
+'''EXPERIMENT CHANGING AMPLITUDES OF VELOCITY PERTURBATIONS'''
+
+#Note that as vprime is used in the wprime expression, vprime should be decreased accordingly so that
+#the amplitude of wprime is scaled correctly
 
 #Define nondimensional velocity perturbations (see notebook for calculations)
 def uprime(x,y,z,t):
-    return (T/L)*l*(phi_r(z)*np.cos(k*(L*x - c.real*T*t)) - phi_i(z)*np.sin(k*(L*x - c.real*T*t)))*np.sin(l*L*y)*np.exp(sigma*T*t)
+    return 100*(T/L)*l*(phi_r(z)*np.cos(k*(L*x - c.real*T*t)) - phi_i(z)*np.sin(k*(L*x - c.real*T*t)))*np.sin(l*L*y)*np.exp(sigma*T*t)
 
 def vprime(x,y,z,t):
-    return -(T/L)*k*(phi_r(z)*np.sin(k*(L*x - c.real*T*t)) + phi_i(z)*np.cos(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t)
+    return -100*(T/L)*k*(phi_r(z)*np.sin(k*(L*x - c.real*T*t)) + phi_i(z)*np.cos(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t)
 
 def wprime(x,y,z,t):
-    return -(T/H)*(f0/(N**2))*(((k*(c.real - Lambda*H*z)*dphi_rdz(z) - sigma*dphi_idz(z))*np.sin(k*(L*x - c.real*T*t)) + (k*(c.real - Lambda*H*z)*dphi_idz(z) + sigma*dphi_rdz(z))*np.cos(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t) - Lambda*(L/T)*vprime(x,y,z,t))
+    return -100*(T/H)*(f0/(N**2))*(((k*(c.real - Lambda*H*z)*dphi_rdz(z) - sigma*dphi_idz(z))*np.sin(k*(L*x - c.real*T*t)) + (k*(c.real - Lambda*H*z)*dphi_idz(z) + sigma*dphi_rdz(z))*np.cos(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t) - Lambda*(L/T)*0.01*vprime(x,y,z,t))
