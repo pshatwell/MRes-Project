@@ -1,41 +1,30 @@
 
 '''Script containing parameters and functions for Eady model scripts, following Vallis 2006.'''
+
 from __future__ import division
 
 import numpy as np
 import cmath
 
-'''EXPERIMENT WITH U_0''' #have been using 0.5 for a while
-
 ################################# PHYSICAL PARAMETERS #############################################################
 
-#Oceanic parameters, Vallis p. 269
+#Oceanic parameters
 
 f0 = -1e-4 #(s^-1) f-plane approximation (southern hemisphere)
 N = 2e-3 #(s^-1) buoyancy frequency (for SO, assuming uniform stratification)
 H = 1e3 #(m) height of upper boundary
-U_0 = 0.15 #(ms^(-1)) mean flow zonal velocity magnitude at upper boundary, faster to better represent eddy velocities in ACC
+U_0 = 0.3 #(ms^(-1)) mean flow zonal velocity magnitude at upper boundary, faster to better represent eddy velocities in ACC
 Lambda = U_0/H #(s^-1) uniform velocity shear in vertical direction
 L = np.abs((N*H)/f0) #(m) typical length scale given by deformation radius
-T = L/U_0 #(s) Eady timescale (about a week)
+T = L/U_0 #(s) Eady timescale (about a day)
 k = 1./L  #(m^-1) zonal wavenumber
 l = (np.pi)/(2*L) #(m^-1) meridional wavenumber, defined for zonal channel
 mu = L*np.sqrt(k**2 + l**2) #dimensionless parameter governing vertical wave struture
-
-alpha = 2e-4 #(K^-1) thermal expansion coefficient
-g = 9.8 #(ms^(-2)) gravitational acceleration
 
 #Phase speed (ms^(-1)) (taking positive root for growth), Vallis 6.86
 c = U_0/2. + (U_0/mu)*cmath.sqrt((mu/2. - (1./np.tanh(mu/2.)))*(mu/2. - np.tanh(mu/2.)))
 
 sigma = k*c.imag #(s^-1) growth rate
-#sigma = 0
-
-#Information to plot background theta distribution
-theta0 = 280. #Reference temperature value
-dthetadz = (N**2)/(g*alpha) #Gill 6.17.24, buoyancy frequency definition
-dthetady = (-f0*Lambda)/(g*alpha) #Gill 7.7.10, thermal wind
-
 
 ################################# FUNCTIONS #############################################################
 
@@ -68,16 +57,8 @@ def psiprime(x,y,z,t):
 def umeanflow(z):
     return (T/L)*Lambda*H*z
 
-#Background theta distribution
-def theta(y,z):
-    return theta0 + dthetady*L*y + dthetadz*H*z
 
-#Theta perturbation, Gill 13.2.5
-def thetaprime(x,y,z,t):
-    return (1./(alpha*g))*(dphi_rdz(z)*np.cos(k*(L*x - c.real*T*t)) - dphi_idz(z)*np.sin(k*(L*x - c.real*T*t)))*np.cos(l*L*y)*np.exp(sigma*T*t)
-
-'''EXPERIMENT CHANGING AMPLITUDES OF VELOCITY PERTURBATIONS'''
-
+#Velocity perturbation amplitudes currently scaled by 100
 #Note that as vprime is used in the wprime expression, vprime should be decreased accordingly so that
 #the amplitude of wprime is scaled correctly
 

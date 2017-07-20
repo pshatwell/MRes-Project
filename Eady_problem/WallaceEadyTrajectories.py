@@ -7,9 +7,11 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy.integrate import odeint
 import numpy.linalg as la
 
-from Eadyinfo import *
+from Eadyinfo_oc import *
+#from Eadyinfo_atm import *
 
-'''WHY DOES MERIDIONAL EXTENT OF CHANNEL APPEAR TO BE -2 TO +2??'''
+'''WHY DO IMPLICIT MIDPOINT SOLUTION VALUES SEEM TO BE TWICE AS LARGE
+AS THEY SHOULD BE??? E.G. MERIDIONAL CHANNEL EXTENT IS -2 TO + 2, VERTICAL HEIGHT IS +2'''
 
 print 'H is (m)', H
 print 'L is (m)', L
@@ -26,15 +28,17 @@ if sigma != 0:
 
 ###############################################################################################
 
-def main(start, stop, zpos=0.5, ypos=1.5):
+def main(start, stop, zpos=0.5, ypos=0.5):
 
     def velocity(t,s):
         x,y,z = s
+        #dsdt = np.array((uprime(x=x,y=y,z=z,t=t), vprime(x=x,y=y,z=z,t=t), wprime(x=x,y=y,z=z,t=t)))
         dsdt = np.array((uprime(x=x,y=y,z=z,t=t) + umeanflow(z=z), vprime(x=x,y=y,z=z,t=t), wprime(x=x,y=y,z=z,t=t)))
         return dsdt
 
     def velocity2(s,t):
         x,y,z = s
+        #dsdt = [uprime(x=x,y=y,z=z,t=t), vprime(x=x,y=y,z=z,t=t), wprime(x=x,y=y,z=z,t=t)]
         dsdt = [uprime(x=x,y=y,z=z,t=t) + umeanflow(z=z), vprime(x=x,y=y,z=z,t=t), wprime(x=x,y=y,z=z,t=t)]
         return dsdt
 
@@ -44,7 +48,7 @@ def main(start, stop, zpos=0.5, ypos=1.5):
 
     tmin = start
     tmax = stop
-    nt = 1000
+    nt = 500
 
     t = np.linspace(tmin, tmax, nt)
 
@@ -60,22 +64,10 @@ def main(start, stop, zpos=0.5, ypos=1.5):
     #Note: zpos=0.5 determines steering level, i.e. where c.real matches mean flow speed
 
     xpos = 0
-    xshift = 2*np.pi/(k*L) #nondimensional shift of a wavelength
 
-
-    #Set of 5 'warm' parcels (positive y, near top)
-    s0_a = np.array((xpos, ypos, zpos))
-    s0_b = np.array((xpos+0.5, ypos, zpos))
-    s0_c = np.array((xpos+1, ypos, zpos))
-    s0_d = np.array((xpos+1.5, ypos, zpos))
-    s0_e = np.array((xpos+2, ypos, zpos))
-
-    #Set of 5 'cold' parcels (negative y, near bottom)
-    s0_f = np.array((xpos+xshift, -ypos, zpos))
-    s0_g = np.array((xpos+xshift+0.5, -ypos, zpos))
-    s0_h = np.array((xpos+xshift+1, -ypos, zpos))
-    s0_i = np.array((xpos+xshift+1.5, -ypos, zpos))
-    s0_j = np.array((xpos+xshift+2, -ypos, zpos))
+    s0_a = np.array((xpos, -ypos, zpos))
+    s0_b = np.array((xpos, 0, zpos))
+    s0_c = np.array((xpos, ypos, zpos))
 
 
     #Define empty arrays for solutions and set their initial positions
@@ -83,31 +75,10 @@ def main(start, stop, zpos=0.5, ypos=1.5):
     empty_a = np.empty((len(t), 3))
     empty_b = np.empty((len(t), 3))
     empty_c = np.empty((len(t), 3))
-    empty_d = np.empty((len(t), 3))
-    empty_e = np.empty((len(t), 3))
-
-    empty_f = np.empty((len(t), 3))
-    empty_g = np.empty((len(t), 3))
-    empty_h = np.empty((len(t), 3))
-    empty_i = np.empty((len(t), 3))
-    empty_j = np.empty((len(t), 3))
-
 
     empty_a[0] = s0_a
     empty_b[0] = s0_b
     empty_c[0] = s0_c
-    empty_d[0] = s0_d
-    empty_e[0] = s0_e
-
-    empty_f[0] = s0_f
-    empty_g[0] = s0_g
-    empty_h[0] = s0_h
-    empty_i[0] = s0_i
-    empty_j[0] = s0_j
-
-    print 'solution shape is', empty_a.shape
-    print 'velocity type is', type(velocity(t=0, s=(0,0,0)))
-    print 'velocity shape is', velocity(t=t,s=(0,0,0)).shape
 
 ###############################################################################################
 
@@ -125,17 +96,11 @@ def main(start, stop, zpos=0.5, ypos=1.5):
     sol_a = implicitmidpoint(empty_a)
     sol_b = implicitmidpoint(empty_b)
     sol_c = implicitmidpoint(empty_c)
-    sol_d = implicitmidpoint(empty_d)
-    sol_e = implicitmidpoint(empty_e)
 
-    sol_f = implicitmidpoint(empty_f)
-    sol_g = implicitmidpoint(empty_g)
-    sol_h = implicitmidpoint(empty_h)
-    sol_i = implicitmidpoint(empty_i)
-    sol_j = implicitmidpoint(empty_j)
-
+    '''CURRENTLY DIVIDING SOLUTIONS BY TWO TO CORRECT THEM. DON'T KNOW WHY.'''
     #Create list of Earth frame trajectories
-    EFsolutions = [sol_a, sol_b, sol_c, sol_d, sol_e, sol_f, sol_g, sol_h, sol_i, sol_j]
+    #EFsolutions = np.array((sol_a, sol_b, sol_c))/2.
+    EFsolutions = np.array((sol_a, sol_b, sol_c))
 
     print 'last element in sol_a is', sol_a[-1]
     print sol_a
@@ -151,18 +116,11 @@ def main(start, stop, zpos=0.5, ypos=1.5):
     rel_sol_a = sol_a + shift #rel for relative motion
     rel_sol_b = sol_b + shift
     rel_sol_c = sol_c + shift
-    rel_sol_d = sol_d + shift
-    rel_sol_e = sol_e + shift
 
-    rel_sol_f = sol_f + shift
-    rel_sol_g = sol_g + shift
-    rel_sol_h = sol_h + shift
-    rel_sol_i = sol_i + shift
-    rel_sol_j = sol_j + shift
-
+    '''CURRENTLY DIVIDING SOLUTIONS BY TWO TO CORRECT THEM. DON'T KNOW WHY.'''
     #Create list of Wave frame trajectories
-    WFsolutions = [rel_sol_a, rel_sol_b, rel_sol_c, rel_sol_d, rel_sol_e, rel_sol_f, rel_sol_g, rel_sol_h, rel_sol_i, rel_sol_j]
-
+    #WFsolutions = np.array((rel_sol_a, rel_sol_b, rel_sol_c))/2.
+    WFsolutions = np.array((rel_sol_a, rel_sol_b, rel_sol_c))
 
 ###############################################################################################
 
@@ -171,57 +129,125 @@ def main(start, stop, zpos=0.5, ypos=1.5):
     sol_a2 = odeint(velocity2, s0_a, t)
     sol_b2 = odeint(velocity2, s0_b, t)
     sol_c2 = odeint(velocity2, s0_c, t)
-    sol_d2 = odeint(velocity2, s0_d, t)
-    sol_e2 = odeint(velocity2, s0_e, t)
 
-    sol_f2 = odeint(velocity2, s0_f, t)
-    sol_g2 = odeint(velocity2, s0_g, t)
-    sol_h2 = odeint(velocity2, s0_h, t)
-    sol_i2 = odeint(velocity2, s0_i, t)
-    sol_j2 = odeint(velocity2, s0_j, t)
-
-    EFsolutions2 = [sol_a2, sol_b2, sol_c2, sol_d2, sol_e2, sol_f2, sol_g2, sol_h2, sol_i2, sol_j2]
+    EFsolutions2 = [sol_a2, sol_b2, sol_c2]
 
     #Define new x-shifted trajectories
     rel_sol_a2 = sol_a2 + shift #rel for relative motion
     rel_sol_b2 = sol_b2 + shift
     rel_sol_c2 = sol_c2 + shift
-    rel_sol_d2 = sol_d2 + shift
-    rel_sol_e2 = sol_e2 + shift
-
-    rel_sol_f2 = sol_f2 + shift
-    rel_sol_g2 = sol_g2 + shift
-    rel_sol_h2 = sol_h2 + shift
-    rel_sol_i2 = sol_i2 + shift
-    rel_sol_j2 = sol_j2 + shift
 
     #Create list of Wave frame trajectories
-    WFsolutions2 = [rel_sol_a2, rel_sol_b2, rel_sol_c2, rel_sol_d2, rel_sol_e2, rel_sol_f2, rel_sol_g2, rel_sol_h2, rel_sol_i2, rel_sol_j2]
+    WFsolutions2 = [rel_sol_a2, rel_sol_b2, rel_sol_c2]
 
 ###############################################################################################
 
-    #Create matrix for background potential temperature distribution
+    #Find extents for arrays to display graphically behind trajectories
+    xmins = []
+    for trajectory in WFsolutions:
+        xmins.append(min(trajectory[:-1,0]))
 
-    theta_matrix = np.zeros((50,50))
+    xmaxes = []
+    for trajectory in WFsolutions:
+        xmaxes.append(max(trajectory[:-1,0]))
 
-    ymin = min(sol_a[:-1,1])
-    ymax = max(sol_a[:-1,1])
+    ymins = []
+    for trajectory in WFsolutions:
+        ymins.append(min(trajectory[:-1,1]))
 
-    zmin = min(sol_a[:-1,2])
-    zmax = max(sol_a[:-1,2])
+    ymaxes = []
+    for trajectory in WFsolutions:
+        ymaxes.append(max(trajectory[:-1,1]))
 
-    thetayvalues = np.linspace(ymin,ymax,50)
-    thetazvalues = np.linspace(zmin,zmax,50)
+    zmins = []
+    for trajectory in WFsolutions:
+        zmins.append(min(trajectory[:-1,2]))
+
+    zmaxes = []
+    for trajectory in WFsolutions:
+        zmaxes.append(max(trajectory[:-1,2]))
+
+    xmin = min(xmins)
+    xmax = max(xmaxes)
+
+    ymin = min(ymins)
+    ymax = max(ymaxes)
+
+    zmin = min(zmins)
+    zmax = max(zmaxes)
+
+    xvalues = np.linspace(xmin, xmax, 50)
+    yvalues = np.linspace(ymin, ymax, 50)
+    zvalues = np.linspace(zmin, zmax, 50)
+
+    xlength = len(xvalues)
+    ylength = len(yvalues)
+    zlength = len(zvalues)
+
+###############################################################################################
+
+    #Define arrays for Eady solution
+    #Solutions are functions in Eadyinfo script
+
+    time = stop #time at which to evaluate arrays for Eady solution
+
+    theta_matrix = np.zeros((zlength, ylength))
 
     for i in range(0, 50, 1):
         for j in range(0, 50, 1):
-            theta_matrix[i,j] = theta(y=thetayvalues[j], z=thetazvalues[i])
+            theta_matrix[i,j] = theta(y=yvalues[j], z=zvalues[i])
 
     print 'dthetady is:', dthetady*L
     print 'dthetadz is:', dthetadz*H
 
     gradient = (dthetadz*H)/(dthetady*L)
     print 'gradient is:', gradient
+
+    #Create empty matrix for thetaprime
+    thetaprime_matrix = np.zeros((zlength,ylength,xlength))
+
+    #Evaluate thetaprime matrix values
+    for i in range(0, zlength, 1):
+        for j in range(0, ylength, 1):
+            for m in range(0, xlength, 1):
+                thetaprime_matrix[i,j,m] = thetaprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time)
+
+    #Create empty matrix for uprime
+    uprime_matrix = np.zeros((zlength,ylength,xlength))
+
+    #Evaluate uprime matrix values
+    for i in range(0, zlength, 1):
+        for j in range(0, ylength, 1):
+            for m in range(0, xlength, 1):
+                uprime_matrix[i,j,m] = uprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time)
+
+    #Create empty matrix for vprime
+    vprime_matrix = np.zeros((zlength,ylength,xlength))
+
+    #Evaluate vprime matrix values
+    for i in range(0, zlength, 1):
+        for j in range(0, ylength, 1):
+            for m in range(0, xlength, 1):
+                vprime_matrix[i,j,m] = vprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time)
+
+    #Create empty matrix for wprime
+    wprime_matrix = np.zeros((zlength,ylength,xlength))
+
+    #Evaluate wprime matrix values
+    for i in range(0, zlength, 1):
+        for j in range(0, ylength, 1):
+            for m in range(0, xlength, 1):
+                wprime_matrix[i,j,m] = wprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time)
+                #wprime_matrix[i,j,m] = wprime(x=2*xvalues[m], y = 2*yvalues[j], z=2*zvalues[i], t=time)
+
+    #Create empty matrix for streamfunction perturbation
+    psiprime_matrix = np.zeros((zlength,ylength,xlength))
+
+    #Evaluate streamfunction matrix values
+    for i in range(0, zlength, 1):
+        for j in range(0, ylength, 1):
+            for m in range(0, xlength, 1):
+                psiprime_matrix[i,j,m] = psiprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time)
 
 ###############################################################################################
 
@@ -242,53 +268,25 @@ def main(start, stop, zpos=0.5, ypos=1.5):
     sol_a_p = np.zeros_like(rel_sol_a) #p for projected
     sol_b_p = np.zeros_like(rel_sol_a)
     sol_c_p = np.zeros_like(rel_sol_a)
-    sol_d_p = np.zeros_like(rel_sol_a)
-    sol_e_p = np.zeros_like(rel_sol_a)
-    sol_f_p = np.zeros_like(rel_sol_a)
-    sol_g_p = np.zeros_like(rel_sol_a)
-    sol_h_p = np.zeros_like(rel_sol_a)
-    sol_i_p = np.zeros_like(rel_sol_a)
-    sol_j_p = np.zeros_like(rel_sol_a)
 
     sol_a_pi = np.zeros_like(rel_sol_a) #i for instability
     sol_b_pi = np.zeros_like(rel_sol_a)
     sol_c_pi = np.zeros_like(rel_sol_a)
-    sol_d_pi = np.zeros_like(rel_sol_a)
-    sol_e_pi = np.zeros_like(rel_sol_a)
-    sol_f_pi = np.zeros_like(rel_sol_a)
-    sol_g_pi = np.zeros_like(rel_sol_a)
-    sol_h_pi = np.zeros_like(rel_sol_a)
-    sol_i_pi = np.zeros_like(rel_sol_a)
-    sol_j_pi = np.zeros_like(rel_sol_a)
 
     #Project WF solutions onto theta surface
     for i in range(len(t)):
         sol_a_p[i] = rel_sol_a[i] - np.dot(rel_sol_a[i], normalhat)*normalhat
         sol_b_p[i] = rel_sol_b[i] - np.dot(rel_sol_b[i], normalhat)*normalhat
         sol_c_p[i] = rel_sol_c[i] - np.dot(rel_sol_c[i], normalhat)*normalhat
-        sol_d_p[i] = rel_sol_d[i] - np.dot(rel_sol_d[i], normalhat)*normalhat
-        sol_e_p[i] = rel_sol_e[i] - np.dot(rel_sol_e[i], normalhat)*normalhat
-        sol_f_p[i] = rel_sol_f[i] - np.dot(rel_sol_f[i], normalhat)*normalhat
-        sol_g_p[i] = rel_sol_g[i] - np.dot(rel_sol_g[i], normalhat)*normalhat
-        sol_h_p[i] = rel_sol_h[i] - np.dot(rel_sol_h[i], normalhat)*normalhat
-        sol_i_p[i] = rel_sol_i[i] - np.dot(rel_sol_i[i], normalhat)*normalhat
-        sol_j_p[i] = rel_sol_j[i] - np.dot(rel_sol_j[i], normalhat)*normalhat
 
     #Project WF solutions onto sheet at half-slope of theta surface
     for i in range(len(t)):
         sol_a_pi[i] = rel_sol_a[i] - np.dot(rel_sol_a[i], normal_ihat)*normal_ihat
         sol_b_pi[i] = rel_sol_b[i] - np.dot(rel_sol_b[i], normal_ihat)*normal_ihat
         sol_c_pi[i] = rel_sol_c[i] - np.dot(rel_sol_c[i], normal_ihat)*normal_ihat
-        sol_d_pi[i] = rel_sol_d[i] - np.dot(rel_sol_d[i], normal_ihat)*normal_ihat
-        sol_e_pi[i] = rel_sol_e[i] - np.dot(rel_sol_e[i], normal_ihat)*normal_ihat
-        sol_f_pi[i] = rel_sol_f[i] - np.dot(rel_sol_f[i], normal_ihat)*normal_ihat
-        sol_g_pi[i] = rel_sol_g[i] - np.dot(rel_sol_g[i], normal_ihat)*normal_ihat
-        sol_h_pi[i] = rel_sol_h[i] - np.dot(rel_sol_h[i], normal_ihat)*normal_ihat
-        sol_i_pi[i] = rel_sol_i[i] - np.dot(rel_sol_i[i], normal_ihat)*normal_ihat
-        sol_j_pi[i] = rel_sol_j[i] - np.dot(rel_sol_j[i], normal_ihat)*normal_ihat
 
-    projected_solutions = [sol_a_p, sol_b_p, sol_c_p, sol_d_p, sol_e_p, sol_f_p, sol_g_p, sol_h_p, sol_i_p, sol_j_p]
-    projected_solutions_i = [sol_a_pi, sol_b_pi, sol_c_pi, sol_d_pi, sol_e_pi, sol_f_pi, sol_g_pi, sol_h_pi, sol_i_pi, sol_j_pi]
+    projected_solutions = [sol_a_p, sol_b_p, sol_c_p]
+    projected_solutions_i = [sol_a_pi, sol_b_pi, sol_c_pi]
 
 ###############################################################################################
 
@@ -417,6 +415,7 @@ def main(start, stop, zpos=0.5, ypos=1.5):
 
 ###############################################################################################
 
+
     #Plot of oscillation growth with time
 
     fig4 = plt.figure()
@@ -445,6 +444,7 @@ def main(start, stop, zpos=0.5, ypos=1.5):
 
     ax10.legend(loc='upper left')
 
+
 ###############################################################################################
 
     #WF isentropic surface projection figure
@@ -464,7 +464,6 @@ def main(start, stop, zpos=0.5, ypos=1.5):
     for i in range(len(times)):
         for j in projected_solutions_i:
             ax13.scatter(j[times[i],0], j[times[i],1], j[times[i],2], marker='o', c='black', s=8)
-
 
 ###############################################################################################
 
@@ -487,10 +486,181 @@ def main(start, stop, zpos=0.5, ypos=1.5):
     ax14.axhline(y=absolutetheta_a[0], color='black',ls='dotted')
     ax14.legend(loc='lower left')
 
+
+###############################################################################################
+
+    #Plot of velocity perturbations with time
+
+    uprime_a = np.zeros_like(t)
+    uprime_b = np.zeros_like(t)
+    uprime_c = np.zeros_like(t)
+
+    vprime_a = np.zeros_like(t)
+    vprime_b = np.zeros_like(t)
+    vprime_c = np.zeros_like(t)
+
+    wprime_a = np.zeros_like(t)
+    wprime_b = np.zeros_like(t)
+    wprime_c = np.zeros_like(t)
+
+    for i in range(len(t)):
+        uprime_a[i] = uprime(x=WFsolutions[0,i,0], y=WFsolutions[0,i,1], z=WFsolutions[0,i,2], t=t[i])
+        uprime_b[i] = uprime(x=WFsolutions[1,i,0], y=WFsolutions[1,i,1], z=WFsolutions[1,i,2], t=t[i])
+        uprime_c[i] = uprime(x=WFsolutions[2,i,0], y=WFsolutions[2,i,1], z=WFsolutions[2,i,2], t=t[i])
+
+        vprime_a[i] = vprime(x=WFsolutions[0,i,0], y=WFsolutions[0,i,1], z=WFsolutions[0,i,2], t=t[i])
+        vprime_b[i] = vprime(x=WFsolutions[1,i,0], y=WFsolutions[1,i,1], z=WFsolutions[1,i,2], t=t[i])
+        vprime_c[i] = vprime(x=WFsolutions[2,i,0], y=WFsolutions[2,i,1], z=WFsolutions[2,i,2], t=t[i])
+
+        wprime_a[i] = wprime(x=WFsolutions[0,i,0], y=WFsolutions[0,i,1], z=WFsolutions[0,i,2], t=t[i])
+        wprime_b[i] = wprime(x=WFsolutions[1,i,0], y=WFsolutions[1,i,1], z=WFsolutions[1,i,2], t=t[i])
+        wprime_c[i] = wprime(x=WFsolutions[2,i,0], y=WFsolutions[2,i,1], z=WFsolutions[2,i,2], t=t[i])
+
+    velocityfig = plt.figure()
+    uprimeax = velocityfig.add_subplot(311)
+    uprimeax.set_xlabel('time (T)')
+    uprimeax.set_ylabel('u prime')
+    uprimeax.plot(t[:-1], uprime_a[:-1])
+    uprimeax.plot(t[:-1], uprime_b[:-1])
+    uprimeax.plot(t[:-1], uprime_c[:-1])
+    uprimeax.axhline(y = uprime_a[0], color='black', ls='dotted')
+
+    vprimeax = velocityfig.add_subplot(312)
+    vprimeax.set_xlabel('time (T)')
+    vprimeax.set_ylabel('v prime')
+    vprimeax.plot(t[:-1], vprime_a[:-1])
+    vprimeax.plot(t[:-1], vprime_b[:-1])
+    vprimeax.plot(t[:-1], vprime_c[:-1])
+    vprimeax.axhline(y = vprime_a[0], color='black', ls='dotted')
+
+    wprimeax = velocityfig.add_subplot(313)
+    wprimeax.set_xlabel('time (T)')
+    wprimeax.set_ylabel('w prime')
+    wprimeax.plot(t[:-1], wprime_a[:-1])
+    wprimeax.plot(t[:-1], wprime_b[:-1])
+    wprimeax.plot(t[:-1], wprime_c[:-1])
+    wprimeax.axhline(y = wprime_a[0], color='black', ls='dotted')
+
+###############################################################################################
+
+    #Wallace 78 Figures
+
+    '''These only really make sense ignoring the mean flow in the velocity function'''
+    '''We only see the Wallace parcel motion below the steering level here, I think'''
+
+    if sigma != 0:
+        efoldtime = 1./(sigma*T)
+        print 'efoldtime is', efoldtime
+
+        times = np.arange(start, len(t), int((efoldtime*len(t)/stop)))
+
+
+    zslice = int(round(zlength*zpos))
+    yslice = int(round(ylength/2.))
+
+
+    #Attempt for 'Figure 3' from Wallace 78 paper
+
+    fig7 = plt.figure()
+    ax15 = fig7.add_subplot(111)
+    ax15.set_xlabel('Latitude (L)')
+    ax15.set_ylabel('Height (H)')
+    isentropes = ax15.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
+    plt.colorbar(isentropes)
+    for i in WFsolutions:
+        ax15.plot(i[:-1,1], i[:-1,2], lw='1.5', color='black')
+    #for i in WFsolutions2:
+    #    ax15.plot(i[:,1], i[:,2], lw='1.5', color='green')
+
+    #Add a dot along trajectories every e-folding time to indicate time evolution
+    for i in range(len(times)):
+        for j in WFsolutions:
+            ax15.scatter(j[times[i],1], j[times[i],2], marker='o', c='black', s=9)
+
+
+    #Attempt at 'Figures 1 and 2' from Wallace 78 paper
+
+    fig8 = plt.figure()
+
+    ax16 = fig8.add_subplot(211)
+    #ax16.set_title('On top of theta perturbation')
+    #ax16.set_xlabel('Longitude (L)')
+    ax16.set_ylabel('Latitude (L)')
+    plt.set_cmap('Reds')
+    xy_contour_theta = ax16.contourf(thetaprime_matrix[zslice,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
+    #plt.colorbar(xy_contour_theta)
+    xy_contour_psi1 = ax16.contour(psiprime_matrix[zslice,:,:], colors='white', origin='lower', aspect='auto', extent=[xmin,xmax,ymin,ymax])
+    #plt.clabel(xy_contour_psi1, inline=1, fontsize=10)
+    for i in WFsolutions:
+        ax16.plot(i[:-1,0], i[:-1,1], lw='1.5', color='black')
+    #for i in WFsolutions2:
+    #    ax16.plot(i[:,0], i[:,1], lw='1.5', color='green')
+
+    #Add a dot along trajectories every e-folding time to indicate time evolution
+    for i in range(len(times)):
+        for j in WFsolutions:
+            ax16.scatter(j[times[i],0], j[times[i],1], marker='o', c='black', s=9)
+
+
+    ax17 = fig8.add_subplot(212)
+    #ax17.set_title('On top of w perturbation')
+    ax17.set_xlabel('Longitude (L)')
+    ax17.set_ylabel('Latitude (L)')
+    plt.set_cmap('Blues')
+    xy_contour_w = ax17.contourf(wprime_matrix[zslice,:,:], aspect='auto', extent = [xmin,xmax,ymin,ymax])
+    #plt.colorbar(xy_contour_w)
+    xy_contour_psi2 = ax17.contour(psiprime_matrix[zslice,:,:], colors='white', origin='lower', aspect='auto', extent=[xmin,xmax,ymin,ymax])
+    #plt.clabel(xy_contour_psi2, inline=1, fontsize=10)
+    for i in WFsolutions:
+        ax17.plot(i[:-1,0], i[:-1,1], lw='1.5', color='black')
+    #for i in WFsolutions2:
+    #    ax17.plot(i[:,0], i[:,1], lw='1.5', color='green')
+
+    #Add a dot along trajectories every e-folding time to indicate time evolution
+    for i in range(len(times)):
+        for j in WFsolutions:
+            ax17.scatter(j[times[i],0], j[times[i],1], marker='o', c='black', s=9)
+
+
+    #'Figures 1 and 2' in the x-z plane
+
+    fig9 = plt.figure()
+
+    ax18 = fig9.add_subplot(211)
+    ax18.set_ylabel('Height (H)')
+    plt.set_cmap('Reds')
+    xz_contour_theta = ax18.contourf(thetaprime_matrix[:,yslice,:], origin='lower', aspect='auto', extent = [xmin,xmax,zmin,zmax])
+    plt.colorbar(xz_contour_theta)
+    for i in WFsolutions:
+        ax18.plot(i[:-1,0], i[:-1,2], lw='1.5', color='black')
+
+    #Add a dot along trajectories every e-folding time to indicate time evolution
+    for i in range(len(times)):
+        for j in WFsolutions:
+            ax18.scatter(j[times[i],0], j[times[i],2], marker='o', c='black', s=9)
+
+
+    ax19 = fig9.add_subplot(212)
+    ax19.set_xlabel('Longitude (L)')
+    ax19.set_ylabel('Height (H)')
+    plt.set_cmap('Blues')
+    xz_contour_w = ax19.contourf(wprime_matrix[:,yslice,:], aspect='auto', extent = [xmin,xmax,zmin,zmax])
+    plt.colorbar(xz_contour_w)
+    for i in WFsolutions:
+        ax19.plot(i[:-1,0], i[:-1,2], lw='1.5', color='black')
+
+    #Add a dot along trajectories every e-folding time to indicate time evolution
+    for i in range(len(times)):
+        for j in WFsolutions:
+            ax19.scatter(j[times[i],0], j[times[i],2], marker='o', c='black', s=9)
+
+
     plt.show()
 
 ###############################################################################################
 
 #Run the programme
 
-main(0, 35, 0.5, 0)
+'''NOTE, THE STEERING LEVEL IS SOMEHOW Z=1 FOR THE IMPLICIT MIDPOINT SOLUTIONS?'''
+
+main(start=0, stop=60, zpos=0.8, ypos=0.5)

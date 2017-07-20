@@ -9,7 +9,7 @@ from scipy.integrate import odeint
 from mpl_toolkits.mplot3d import Axes3D
 import numpy.linalg as la
 
-from Eadyinfo import *
+from Eadyinfo_oc import *
 
 
 print 'H is', H
@@ -240,6 +240,37 @@ def main(t):
     #Plotting in y-z plane
     yz_contour_theta = ax15.contourf(thetaprime_matrix[:,:,0], origin='lower', aspect='auto', extent = [ymin,ymax,zmin,zmax])
     plt.colorbar(yz_contour_theta)
+
+###############################################################################################
+
+    #Compare vertical structure of different fields
+    fig6 = plt.figure()
+    fig6.suptitle('Eady solutions', fontsize=15)
+    plt.set_cmap('inferno')
+    ax16 = fig6.add_subplot(221)
+    ax16.set_title('Streamfunction', fontsize=14)
+    #ax16.set_xlabel('x (L)')
+    ax16.set_ylabel('z (H)')
+    ax16.contourf(psiprime_matrix[:,0,:], origin='lower', aspect='auto', extent = [xmin,xmax,zmin,zmax])
+
+    ax17 = fig6.add_subplot(222)
+    ax17.set_title('v perturbation', fontsize=14)
+    #ax17.set_xlabel('x (L)')
+    ax17.set_ylabel('z (H)')
+    ax17.contourf(vprime_matrix[:,0,:], origin='lower', aspect='auto', extent = [xmin,xmax,zmin,zmax])
+
+    ax18 = fig6.add_subplot(223)
+    ax18.set_title('w perturbation', fontsize=14)
+    ax18.set_xlabel('x (L)')
+    ax18.set_ylabel('z (H)')
+    ax18.contourf(wprime_matrix[:,0,:], origin='lower', aspect='auto', extent = [xmin,xmax,zmin,zmax])
+
+    ax19 = fig6.add_subplot(224)
+    ax19.set_title('theta perturbation', fontsize=14)
+    ax19.set_xlabel('x (L)')
+    ax19.set_ylabel('z (H)')
+    ax19.contourf(thetaprime_matrix[:,0,:], origin='lower', aspect='auto', extent = [xmin,xmax,zmin,zmax])
+
 
     plt.show()
 
