@@ -135,6 +135,8 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
     s_b_p = np.zeros_like(rel_s_a)
     s_c_p = np.zeros_like(rel_s_a)
 
+    print 'shape of s_a_p is:', s_a_p.shape
+
     s_a_pi = np.zeros_like(rel_s_a) #i for instability
     s_b_pi = np.zeros_like(rel_s_a)
     s_c_pi = np.zeros_like(rel_s_a)
@@ -190,9 +192,18 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
     zmin = min(zmins)
     zmax = max(zmaxes)
 
-    xvalues = np.linspace(xmin, xmax, 50)
-    yvalues = np.linspace(ymin, ymax, 50)
-    zvalues = np.linspace(zmin, zmax, 50)
+    upmedian = np.median(rel_s_a[:,2]) #This should drift up
+    downmedian = np.median(rel_s_c[:,2]) #This should drift down
+
+    print 'upmedian is:', upmedian
+    print 'downmedian is:', downmedian
+
+    print 'upmedian - zpos is:', upmedian - zpos
+    print 'downmedian - zpos is:', downmedian - zpos
+
+    xvalues = np.linspace(xmin, xmax, 80)
+    yvalues = np.linspace(ymin, ymax, 80)
+    zvalues = np.linspace(zmin, zmax, 80)
 
     xlength = len(xvalues)
     ylength = len(yvalues)
@@ -203,12 +214,12 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
     #Define arrays for Eady solution
     #Solutions are functions in Eadyinfo script
 
-    time = stop #time at which to evaluate arrays for Eady solution
+    time = start #time at which to evaluate arrays for Eady solution
 
     theta_matrix = np.zeros((zlength, ylength))
 
-    for i in range(0, 50, 1):
-        for j in range(0, 50, 1):
+    for i in range(0, zlength, 1):
+        for j in range(0, ylength, 1):
             theta_matrix[i,j] = theta(y=yvalues[j], z=zvalues[i])
 
     print '\ndthetady is:', dthetady*L
@@ -263,7 +274,7 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
     #Projection in x-z plane
     ax2 = fig1.add_subplot(222)
-    ax2.set_title('x-z plane', fontsize='14')
+    #ax2.set_title('x-z plane', fontsize='14')
     ax2.set_xlabel('x (L)', fontsize='14')
     ax2.set_ylabel('z (H)', fontsize='14')
     for i in EFsolutions:
@@ -271,7 +282,7 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
     #Projection in y-z plane
     ax3 = fig1.add_subplot(223)
-    ax3.set_title('y-z plane', fontsize='14')
+    #ax3.set_title('y-z plane', fontsize='14')
     ax3.set_xlabel('y (L)', fontsize='14')
     ax3.set_ylabel('z (H)', fontsize='14')
     isentropes1 = ax3.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
@@ -281,7 +292,7 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
     #Projection in x-y plane
     ax4 = fig1.add_subplot(224)
-    ax4.set_title('x-y plane', fontsize='14')
+    #ax4.set_title('x-y plane', fontsize='14')
     ax4.set_xlabel('x (L)', fontsize='14')
     ax4.set_ylabel('y (L)', fontsize='14')
     for i in EFsolutions:
@@ -303,7 +314,7 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
     #Projection in x-z plane
     ax6 = fig2.add_subplot(222)
-    ax6.set_title('x-z plane', fontsize='14')
+    #ax6.set_title('x-z plane', fontsize='14')
     ax6.set_xlabel('x (L)', fontsize='14')
     ax6.set_ylabel('z (H)', fontsize='14')
     for i in WFsolutions:
@@ -311,7 +322,7 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
     #Projection in y-z plane
     ax7 = fig2.add_subplot(223)
-    ax7.set_title('y-z plane', fontsize='14')
+    #ax7.set_title('y-z plane', fontsize='14')
     ax7.set_xlabel('y (L)', fontsize='14')
     ax7.set_ylabel('z (H)', fontsize='14')
     isentropes2 = ax7.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
@@ -321,7 +332,7 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
     #Projection in x-y plane
     ax8 = fig2.add_subplot(224)
-    ax8.set_title('x-y plane', fontsize='14')
+    #ax8.set_title('x-y plane', fontsize='14')
     ax8.set_xlabel('x (L)', fontsize='14')
     ax8.set_ylabel('y (L)', fontsize='14')
     for i in WFsolutions:
@@ -346,11 +357,13 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
     Wallacefig12 = plt.figure()
 
     W12ax = Wallacefig12.add_subplot(211)
-    W12ax.set_ylabel('Latitude (L)', fontsize='14')
+    W12ax.set_ylabel('Latitude (L)', fontsize='15')
+    #W12ax.set_xlabel('Longitude (L)', fontsize='15')
     plt.set_cmap('Reds')
     xy_contour_theta = W12ax.contourf(thetaprime_matrix[zslice,:,:], origin='lower', aspect='auto', extent = [xmin,xmax,ymin,ymax])
     plt.colorbar(xy_contour_theta)
-    #xy_contour_psi1 = W12ax.contour(psiprime_matrix[zslice,:,:], colors='white', origin='lower', aspect='auto', extent=[xmin,xmax,ymin,ymax])
+    #xy_contour_psi1 = W12ax.contourf(psiprime_matrix[zslice,:,:], cmap='viridis', origin='lower', aspect='auto', extent=[xmin,xmax,ymin,ymax])
+    #plt.colorbar(xy_contour_psi1)
     #plt.clabel(xy_contour_psi1, inline=1, fontsize=10)
     for i in WFsolutions:
         W12ax.plot(i[:,0], i[:,1], lw='1.5', color='black')
@@ -362,8 +375,8 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
 
     W12ax2 = Wallacefig12.add_subplot(212)
-    W12ax2.set_xlabel('Longitude (L)', fontsize='14')
-    W12ax2.set_ylabel('Latitude (L)', fontsize='14')
+    W12ax2.set_xlabel('Longitude (L)', fontsize='15')
+    W12ax2.set_ylabel('Latitude (L)', fontsize='15')
     plt.set_cmap('Blues')
     xy_contour_w = W12ax2.contourf(wprime_matrix[zslice,:,:], aspect='auto', extent = [xmin,xmax,ymin,ymax])
     plt.colorbar(xy_contour_w)
@@ -383,9 +396,10 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
     Wallacefig12xz = plt.figure()
 
     W12ax3 = Wallacefig12xz.add_subplot(211)
-    W12ax3.set_ylabel('Height (H)', fontsize='14')
+    W12ax3.set_ylabel('Height (H)', fontsize='15')
     plt.set_cmap('Reds')
     xz_contour_theta = W12ax3.contourf(thetaprime_matrix[:,yslice,:], origin='lower', aspect='auto', extent = [xmin,xmax,zmin,zmax])
+    #xz_contour_theta = W12ax3.contourf(psiprime_matrix[:,yslice,:], origin='lower', aspect='auto', extent = [xmin,xmax,zmin,zmax])
     plt.colorbar(xz_contour_theta)
     for i in WFsolutions:
         W12ax3.plot(i[:,0], i[:,2], lw='1.5', color='black')
@@ -397,8 +411,8 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
 
     W12ax4 = Wallacefig12xz.add_subplot(212)
-    W12ax4.set_xlabel('Longitude (L)', fontsize='14')
-    W12ax4.set_ylabel('Height (H)', fontsize='14')
+    W12ax4.set_xlabel('Longitude (L)', fontsize='15')
+    W12ax4.set_ylabel('Height (H)', fontsize='15')
     plt.set_cmap('Blues')
     xz_contour_w = W12ax4.contourf(wprime_matrix[:,yslice,:], aspect='auto', extent = [xmin,xmax,zmin,zmax])
     plt.colorbar(xz_contour_w)
@@ -413,17 +427,29 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
     #Attempt for 'Figure 3' from Wallace 78 paper
 
+    gamma = (dthetady*L)/(dthetadz*H)
+    print '\ngamma is:', gamma
+
+    def zposition(y): #Line for half slope of isentropes
+        return -(gamma/2.)*y + zpos
+
+    ypoints = np.linspace(-1,1,50)
+
     Wallacefig3 = plt.figure()
     W3ax = Wallacefig3.add_subplot(111)
-    W3ax.set_xlabel('Latitude (L)', fontsize='14')
-    W3ax.set_ylabel('Height (H)', fontsize='14')
+    W3ax.set_xlabel('Latitude (L)', fontsize='15')
+    W3ax.set_ylabel('Height (H)', fontsize='15')
     isentropes = W3ax.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto', cmap='inferno')
     plt.colorbar(isentropes)
+    W3ax.plot(ypoints, zposition(ypoints), color='white', ls='dotted')
+    W3ax.axhline(y=zpos, color='white', ls='dashed')
+    #W3ax.plot(rel_s_b[:,1], rel_s_b[:,2], lw='1.5', color='black')
     for i in WFsolutions:
         W3ax.plot(i[:,1], i[:,2], lw='1.5', color='black')
 
     #Add a dot along trajectories every e-folding time to indicate time evolution
     for i in range(len(times)):
+        #W3ax.scatter(rel_s_b[times[i],1], rel_s_b[times[i],2], marker='o', c='black', s=9)
         for j in WFsolutions:
             W3ax.scatter(j[times[i],1], j[times[i],2], marker='o', c='black', s=9)
 
@@ -445,10 +471,10 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
         displacement[i] = np.sqrt(meanxseparation[i] + meanyseparation[i] + meanzseparation[i]) #Note lack of 'squares' as separations are already distances squared
 
     disfig = plt.figure()
-    disfig.suptitle('Evolution of mean parcel displacement', fontsize='16')
+    #disfig.suptitle('Evolution of mean parcel displacement', fontsize='16')
     disax = disfig.add_subplot(111)
-    disax.set_xlabel('time (T)', fontsize='14')
-    disax.set_ylabel('displacement', fontsize='14')
+    disax.set_xlabel('time (T)', fontsize='15')
+    disax.set_ylabel('Mean parcel displacement', fontsize='15')
     disax.plot(t[:], displacement[:], label='Implicit Midpoint')
     #disax.legend(loc='upper left')
 
@@ -458,20 +484,20 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
         #Plot of oscillation growth with time
 
         growthfig = plt.figure()
-        growthfig.suptitle('Growth of oscillations with time', fontsize='16')
+        #growthfig.suptitle('Growth of oscillations with time', fontsize='16')
 
         growthax1 = growthfig.add_subplot(311)
-        growthax1.set_title('Zonal extent', fontsize='14')
-        growthax1.set_ylabel('(x-x0)^2', fontsize='14')
+        #growthax1.set_title('Zonal extent', fontsize='14')
+        growthax1.set_ylabel('(x-x0)^2', fontsize='15')
 
         growthax2 = growthfig.add_subplot(312)
-        growthax2.set_title('Meridional extent', fontsize='14')
-        growthax2.set_ylabel('(y-y0)^2', fontsize='14')
+        #growthax2.set_title('Meridional extent', fontsize='14')
+        growthax2.set_ylabel('(y-y0)^2', fontsize='15')
 
         growthax3 = growthfig.add_subplot(313)
-        growthax3.set_title('Vertical extent', fontsize='14')
-        growthax3.set_xlabel('time (T)', fontsize='14')
-        growthax3.set_ylabel('(z-z0)^2', fontsize='14')
+        #growthax3.set_title('Vertical extent', fontsize='14')
+        growthax3.set_xlabel('time (T)', fontsize='15')
+        growthax3.set_ylabel('(z-z0)^2', fontsize='15')
 
         growthax1.plot(t[:], meanxseparation[:], label='Implicit Midpoint')
         growthax2.plot(t[:], meanyseparation[:], label='Implicit Midpoint')
@@ -512,7 +538,7 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
         velocityfig = plt.figure()
         uprimeax = velocityfig.add_subplot(311)
-        uprimeax.set_ylabel('u prime', fontsize='14')
+        uprimeax.set_ylabel('u prime', fontsize='15')
         uprimeax.plot(t[:], uprime_a[:], label='a')
         uprimeax.plot(t[:], uprime_b[:], label='b')
         uprimeax.plot(t[:], uprime_c[:], label='c')
@@ -520,15 +546,15 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
         uprimeax.legend(loc='upper left')
 
         vprimeax = velocityfig.add_subplot(312)
-        vprimeax.set_ylabel('v prime', fontsize='14')
+        vprimeax.set_ylabel('v prime', fontsize='15')
         vprimeax.plot(t[:], vprime_a[:], label='a')
         vprimeax.plot(t[:], vprime_b[:], label='b')
         vprimeax.plot(t[:], vprime_c[:], label='c')
         vprimeax.axhline(y = vprime_a[0], color='black', ls='dotted')
 
         wprimeax = velocityfig.add_subplot(313)
-        wprimeax.set_xlabel('time (T)', fontsize='14')
-        wprimeax.set_ylabel('w prime', fontsize='14')
+        wprimeax.set_xlabel('time (T)', fontsize='15')
+        wprimeax.set_ylabel('w prime', fontsize='15')
         wprimeax.plot(t[:], wprime_a[:], label='a')
         wprimeax.plot(t[:], wprime_b[:], label='b')
         wprimeax.plot(t[:], wprime_c[:], label='c')
@@ -548,9 +574,9 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
         for j in projected_solutions_i:
             greenax.plot(j[:,0], j[:,1], j[:,2])
 
-        dot_times = np.arange(0,len(time_points),50)
+        dot_times = np.arange(0,len(time_points),100)
 
-        #Add a dot along trajectories every 50 timesteps to indicate time evolution
+        #Add a dot along trajectories every 100 timesteps to indicate time evolution
         for i in range(len(dot_times)):
             for j in projected_solutions_i:
                 greenax.scatter(j[dot_times[i],0], j[dot_times[i],1], j[dot_times[i],2], marker='o', c='black', s=8)
@@ -574,18 +600,20 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
         thetafig = plt.figure()
         thetaax1 = thetafig.add_subplot(111)
-        thetaax1.set_xlabel('time (T)', fontsize='14')
-        thetaax1.set_ylabel('Absolute theta (K)', fontsize='14')
+        thetaax1.set_xlabel('time (T)', fontsize='15')
+        thetaax1.set_ylabel('Potential temperature (K)', fontsize='15')
         thetaax1.plot(t[:], absolutetheta_a[:], label='a')
         thetaax1.plot(t[:], absolutetheta_b[:], label='b')
         thetaax1.plot(t[:], absolutetheta_c[:], label='c')
         thetaax1.axhline(y=absolutetheta_a[0], color='black',ls='dotted')
+        thetaax1.axhline(y=absolutetheta_b[0], color='black',ls='dotted')
+        thetaax1.axhline(y=absolutetheta_c[0], color='black',ls='dotted')
         thetaax1.legend(loc='upper left')
 
         thetaprimefig = plt.figure()
         thetaax2 = thetaprimefig.add_subplot(111)
-        thetaax2.set_xlabel('time (T)', fontsize='14')
-        thetaax2.set_ylabel('Theta perturbation (K)', fontsize='14')
+        thetaax2.set_xlabel('time (T)', fontsize='15')
+        thetaax2.set_ylabel('Theta perturbation (K)', fontsize='15')
         thetaax2.plot(t[:], thetaprime_a[:], color='red')
         thetaax2.axhline(y=thetaprime_a[0], color='black',ls='dotted')
 
@@ -596,13 +624,13 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
             heatfluxfig = plt.figure()
             fluxax1 = heatfluxfig.add_subplot(211)
-            fluxax1.set_ylabel('Vertical heat flux (K ms^-1)', fontsize='14')
+            fluxax1.set_ylabel('Vertical heat flux (K ms^-1)', fontsize='15')
             fluxax1.plot(t[:], wheatflux[:], color='blue')
             fluxax1.axhline(y=wheatflux[0], color='black', ls='dotted')
 
             fluxax2 = heatfluxfig.add_subplot(212)
             fluxax2.set_xlabel('time (T)', fontsize='14')
-            fluxax2.set_ylabel('Meridional heat flux (K ms^-1)', fontsize='14')
+            fluxax2.set_ylabel('Meridional heat flux (K ms^-1)', fontsize='15')
             fluxax2.plot(t[:], vheatflux[:], color='green')
             fluxax2.axhline(y=vheatflux[0], color='black', ls='dotted')
 
@@ -616,4 +644,4 @@ def main(start=0, stop=30, xpos=0, ypos=0.5, zpos=0.5, showvel=False, showgrowth
 
 #Run the programme, choose stop to be close to a multiple of efoldtime
 
-main(start=0, stop=25.3, xpos=0, ypos=0.4, zpos=0.1, showvel=True, showtheta=True) #T is about a day
+main(start=0, stop=31.6, xpos=0, ypos=0.4, zpos=0.95) #T is about a day

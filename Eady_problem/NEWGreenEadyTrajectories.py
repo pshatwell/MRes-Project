@@ -25,7 +25,7 @@ if sigma != 0:
 
 ###############################################################################################
 
-def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
+def main(start, stop, xpos=0, ypos=0.5):
 
     def velocity(s,t):
         x,y,z = s
@@ -61,25 +61,39 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
     #Define initial positions of parcels
     #Note: zpos=0.5 determines steering level, i.e. where c.real matches mean flow speed
 
-    xshift = np.pi/(k*L) #nondimensional shift of half a wavelength
+    #xshift = np.pi/(k*L) #nondimensional shift of half a wavelength
+    xshift = 2*np.pi/(k*L) #nondimensional shift of a wavelength
+
+    gamma = (dthetady*L)/(dthetadz*H)
+    print '\ngamma is:', gamma
+
+    def zpos(y): #enforce parcels to lie on line at half-slope to isentropes
+        return -(gamma/2.)*y + 0.5
+
+    def zpos2(y):
+        return -gamma*y + 0.5
+
+    print '(ypos, z(ypos)) is:', (ypos, zpos(ypos))
+    print '(-ypos, z(-ypos)) is:', (-ypos, zpos(-ypos))
 
     #Set of 5 'warm' parcels (positive y, near top)
-    s0_a = np.array((xpos, ypos, zpos))
-    s0_b = np.array((xpos+0.5, ypos, zpos))
-    s0_c = np.array((xpos+1, ypos, zpos))
-    s0_d = np.array((xpos+1.5, ypos, zpos))
-    s0_e = np.array((xpos+2, ypos, zpos))
+    s0_a = np.array((xpos, ypos, zpos(ypos)))
+    s0_b = np.array((xpos+0.5, ypos, zpos(ypos)))
+    s0_c = np.array((xpos+1, ypos, zpos(ypos)))
+    s0_d = np.array((xpos+1.5, ypos, zpos(ypos)))
+    s0_e = np.array((xpos+2, ypos, zpos(ypos)))
 
     #Set of 5 'cold' parcels (negative y, near bottom)
-    s0_f = np.array((xpos+xshift, -ypos, zpos))
-    s0_g = np.array((xpos+xshift+0.5, -ypos, zpos))
-    s0_h = np.array((xpos+xshift+1, -ypos, zpos))
-    s0_i = np.array((xpos+xshift+1.5, -ypos, zpos))
-    s0_j = np.array((xpos+xshift+2, -ypos, zpos))
+    s0_f = np.array((xpos+xshift, -ypos, zpos(-ypos)))
+    s0_g = np.array((xpos+xshift+0.5, -ypos, zpos(-ypos)))
+    s0_h = np.array((xpos+xshift+1, -ypos, zpos(-ypos)))
+    s0_i = np.array((xpos+xshift+1.5, -ypos, zpos(-ypos)))
+    s0_j = np.array((xpos+xshift+2, -ypos, zpos(-ypos)))
 
 
     solver_a = odespy.MidpointImplicit(velocity)
     solver_a.set_initial_condition(s0_a)
+
     solver_b = odespy.MidpointImplicit(velocity)
     solver_b.set_initial_condition(s0_b)
     solver_c = odespy.MidpointImplicit(velocity)
@@ -89,8 +103,10 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
     solver_e = odespy.MidpointImplicit(velocity)
     solver_e.set_initial_condition(s0_e)
 
+
     solver_f = odespy.MidpointImplicit(velocity)
     solver_f.set_initial_condition(s0_f)
+
     solver_g = odespy.MidpointImplicit(velocity)
     solver_g.set_initial_condition(s0_g)
     solver_h = odespy.MidpointImplicit(velocity)
@@ -100,17 +116,20 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
     solver_j = odespy.MidpointImplicit(velocity)
     solver_j.set_initial_condition(s0_j)
 
+
 ###############################################################################################
 
     #Solve for parcel trajectories
 
     sol_a, t = solver_a.solve(time_points)
+
     sol_b, t = solver_b.solve(time_points)
     sol_c, t = solver_c.solve(time_points)
     sol_d, t = solver_d.solve(time_points)
     sol_e, t = solver_e.solve(time_points)
 
     sol_f, t = solver_f.solve(time_points)
+
     sol_g, t = solver_g.solve(time_points)
     sol_h, t = solver_h.solve(time_points)
     sol_i, t = solver_i.solve(time_points)
@@ -118,7 +137,7 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
 
     #Create list of Earth frame trajectories
     EFsolutions = [sol_a, sol_b, sol_c, sol_d, sol_e, sol_f, sol_g, sol_h, sol_i, sol_j]
-
+    #EFsolutions = [sol_a, sol_f]
 ###############################################################################################
 
     #Transform to wave frame by shifting x-coordinates
@@ -128,12 +147,14 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
 
     #Define new x-shifted trajectories
     rel_sol_a = sol_a + shift #rel for relative motion
+
     rel_sol_b = sol_b + shift
     rel_sol_c = sol_c + shift
     rel_sol_d = sol_d + shift
     rel_sol_e = sol_e + shift
 
     rel_sol_f = sol_f + shift
+
     rel_sol_g = sol_g + shift
     rel_sol_h = sol_h + shift
     rel_sol_i = sol_i + shift
@@ -141,8 +162,9 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
 
     #Create list of Wave frame trajectories
     WFsolutions = [rel_sol_a, rel_sol_b, rel_sol_c, rel_sol_d, rel_sol_e, rel_sol_f, rel_sol_g, rel_sol_h, rel_sol_i, rel_sol_j]
-
+    #WFsolutions = [rel_sol_a, rel_sol_f]
 ###############################################################################################
+
 
     #Solve for parcel trajectories AGAIN but using Scipy's odeint - 'lsoda' integrator
 
@@ -178,9 +200,19 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
 
 ###############################################################################################
 
-    #Create matrix for background potential temperature distribution
+    #Create matrices for background potential temperature distribution
+    #and streamfunction perturbation
 
-    theta_matrix = np.zeros((50,50))
+    time = start #time at which to evaluate arrays for Eady solution
+
+    #Find extents for arrays to display graphically behind trajectories
+    xmins = []
+    for trajectory in WFsolutions:
+        xmins.append(min(trajectory[:,0]))
+
+    xmaxes = []
+    for trajectory in WFsolutions:
+        xmaxes.append(max(trajectory[:,0]))
 
     ymins = []
     for trajectory in WFsolutions:
@@ -198,24 +230,51 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
     for trajectory in WFsolutions:
         zmaxes.append(max(trajectory[:,2]))
 
+    xmin = min(xmins)
+    xmax = max(xmaxes)
+
     ymin = min(ymins)
     ymax = max(ymaxes)
 
     zmin = min(zmins)
     zmax = max(zmaxes)
 
-    thetayvalues = np.linspace(ymin,ymax,50)
-    thetazvalues = np.linspace(zmin,zmax,50)
+    xvalues = np.linspace(xmin, xmax, 20)
+    yvalues = np.linspace(ymin, ymax, 20)
+    zvalues = np.linspace(zmin, zmax, 20)
 
-    for i in range(0, 50, 1):
-        for j in range(0, 50, 1):
-            theta_matrix[i,j] = theta(y=thetayvalues[j], z=thetazvalues[i])
+    xlength = len(xvalues)
+    ylength = len(yvalues)
+    zlength = len(zvalues)
+
+    theta_matrix = np.zeros((zlength,ylength))
+    psiprime_matrix = np.zeros((zlength,ylength,xlength))
+
+    #Evaluate theta matrix values
+    for i in range(0, zlength, 1):
+        for j in range(0, ylength, 1):
+            theta_matrix[i,j] = theta(y=yvalues[j], z=zvalues[i])
+
+    #Evaluate streamfunction matrix values
+    for i in range(0, zlength, 1):
+        for j in range(0, ylength, 1):
+            for m in range(0, xlength, 1):
+                psiprime_matrix[i,j,m] = psiprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time)
 
     print 'dthetady is:', dthetady*L
     print 'dthetadz is:', dthetadz*H
 
-    gradient = (dthetadz*H)/(dthetady*L)
-    print 'gradient is:', gradient
+    #Make array for full perturbation velocity field
+    velocityfield = np.zeros((zlength, ylength, xlength, 3))
+
+    print 'shape of velocity field is:', velocityfield.shape
+
+    for i in range(0, zlength, 1):
+        for j in range(0, ylength, 1):
+            for m in range(0, xlength, 1):
+                velocityfield[i,j,m,0] = uprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time) + umeanflow(z=zvalues[i]) - c.real*(T/L) #Subtracting phase speed, so we're in wave frame
+                velocityfield[i,j,m,1] = vprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time)
+                velocityfield[i,j,m,2] = wprime(x=xvalues[m], y = yvalues[j], z=zvalues[i], t=time)
 
 ###############################################################################################
 
@@ -234,22 +293,28 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
     print 'normal to half-slope surface is:', normal_ihat
 
     sol_a_p = np.zeros_like(rel_sol_a) #p for projected
+
     sol_b_p = np.zeros_like(rel_sol_a)
     sol_c_p = np.zeros_like(rel_sol_a)
     sol_d_p = np.zeros_like(rel_sol_a)
     sol_e_p = np.zeros_like(rel_sol_a)
+
     sol_f_p = np.zeros_like(rel_sol_a)
+
     sol_g_p = np.zeros_like(rel_sol_a)
     sol_h_p = np.zeros_like(rel_sol_a)
     sol_i_p = np.zeros_like(rel_sol_a)
     sol_j_p = np.zeros_like(rel_sol_a)
 
     sol_a_pi = np.zeros_like(rel_sol_a) #i for instability
+
     sol_b_pi = np.zeros_like(rel_sol_a)
     sol_c_pi = np.zeros_like(rel_sol_a)
     sol_d_pi = np.zeros_like(rel_sol_a)
     sol_e_pi = np.zeros_like(rel_sol_a)
+
     sol_f_pi = np.zeros_like(rel_sol_a)
+
     sol_g_pi = np.zeros_like(rel_sol_a)
     sol_h_pi = np.zeros_like(rel_sol_a)
     sol_i_pi = np.zeros_like(rel_sol_a)
@@ -258,11 +323,14 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
     #Project WF solutions onto theta surface
     for i in range(len(t)):
         sol_a_p[i] = rel_sol_a[i] - np.dot(rel_sol_a[i], normalhat)*normalhat
+
         sol_b_p[i] = rel_sol_b[i] - np.dot(rel_sol_b[i], normalhat)*normalhat
         sol_c_p[i] = rel_sol_c[i] - np.dot(rel_sol_c[i], normalhat)*normalhat
         sol_d_p[i] = rel_sol_d[i] - np.dot(rel_sol_d[i], normalhat)*normalhat
         sol_e_p[i] = rel_sol_e[i] - np.dot(rel_sol_e[i], normalhat)*normalhat
+
         sol_f_p[i] = rel_sol_f[i] - np.dot(rel_sol_f[i], normalhat)*normalhat
+
         sol_g_p[i] = rel_sol_g[i] - np.dot(rel_sol_g[i], normalhat)*normalhat
         sol_h_p[i] = rel_sol_h[i] - np.dot(rel_sol_h[i], normalhat)*normalhat
         sol_i_p[i] = rel_sol_i[i] - np.dot(rel_sol_i[i], normalhat)*normalhat
@@ -271,58 +339,71 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
     #Project WF solutions onto sheet at half-slope of theta surface
     for i in range(len(t)):
         sol_a_pi[i] = rel_sol_a[i] - np.dot(rel_sol_a[i], normal_ihat)*normal_ihat
+
         sol_b_pi[i] = rel_sol_b[i] - np.dot(rel_sol_b[i], normal_ihat)*normal_ihat
         sol_c_pi[i] = rel_sol_c[i] - np.dot(rel_sol_c[i], normal_ihat)*normal_ihat
         sol_d_pi[i] = rel_sol_d[i] - np.dot(rel_sol_d[i], normal_ihat)*normal_ihat
         sol_e_pi[i] = rel_sol_e[i] - np.dot(rel_sol_e[i], normal_ihat)*normal_ihat
+
         sol_f_pi[i] = rel_sol_f[i] - np.dot(rel_sol_f[i], normal_ihat)*normal_ihat
+
         sol_g_pi[i] = rel_sol_g[i] - np.dot(rel_sol_g[i], normal_ihat)*normal_ihat
         sol_h_pi[i] = rel_sol_h[i] - np.dot(rel_sol_h[i], normal_ihat)*normal_ihat
         sol_i_pi[i] = rel_sol_i[i] - np.dot(rel_sol_i[i], normal_ihat)*normal_ihat
         sol_j_pi[i] = rel_sol_j[i] - np.dot(rel_sol_j[i], normal_ihat)*normal_ihat
 
-    projected_solutions = [sol_a_p, sol_b_p, sol_c_p, sol_d_p, sol_e_p, sol_f_p, sol_g_p, sol_h_p, sol_i_p, sol_j_p]
-    projected_solutions_i = [sol_a_pi, sol_b_pi, sol_c_pi, sol_d_pi, sol_e_pi, sol_f_pi, sol_g_pi, sol_h_pi, sol_i_pi, sol_j_pi]
 
+    projected_solutions = [sol_a_p, sol_b_p, sol_c_p, sol_d_p, sol_e_p, sol_f_p, sol_g_p, sol_h_p, sol_i_p, sol_j_p]
+    #projected_solutions = [sol_a_p, sol_f_p]
+    projected_solutions_i = [sol_a_pi, sol_b_pi, sol_c_pi, sol_d_pi, sol_e_pi, sol_f_pi, sol_g_pi, sol_h_pi, sol_i_pi, sol_j_pi]
+    #projected_solutions_i = [sol_a_pi, sol_f_pi]
 ###############################################################################################
 
     #Plot the trajectories
+
+    ypoints = np.linspace(-1,1,50)
+
+    #Define slices for background distributions
+    zslice = int(round(zlength/2.))
+    yslice = int(round(ylength/2.))
+    xslice = int(round(xlength/2.))
 
     #Plot in the Earth frame
 
     fig1 = plt.figure()
     plt.set_cmap('inferno')
-    fig1.suptitle('Earth frame', fontsize='16')
+    fig1.suptitle('Earth frame', fontsize='18')
     ax1 = fig1.add_subplot(221, projection = '3d')
-    ax1.set_xlabel('x (L)', fontsize='14')
-    ax1.set_ylabel('y (L)', fontsize='14')
-    ax1.set_zlabel('z (H)', fontsize='14')
+    ax1.set_xlabel('x (L)', fontsize='16')
+    ax1.set_ylabel('y (L)', fontsize='16')
+    ax1.set_zlabel('z (H)', fontsize='16')
     for i in EFsolutions:
         ax1.plot(i[:,0], i[:,1], i[:,2])
 
     #Projection in x-z plane
     ax2 = fig1.add_subplot(222)
-    ax2.set_title('x-z plane', fontsize='14')
-    ax2.set_xlabel('x (L)', fontsize='14')
-    ax2.set_ylabel('z (H)', fontsize='14')
+    #ax2.set_title('x-z plane', fontsize='14')
+    ax2.set_xlabel('x (L)', fontsize='16')
+    ax2.set_ylabel('z (H)', fontsize='16')
     for i in EFsolutions:
         ax2.plot(i[:,0], i[:,2])
 
     #Projection in y-z plane
     ax3 = fig1.add_subplot(223)
-    ax3.set_title('y-z plane', fontsize='14')
-    ax3.set_xlabel('y (L)', fontsize='14')
-    ax3.set_ylabel('z (H)', fontsize='14')
+    #ax3.set_title('y-z plane', fontsize='14')
+    ax3.set_xlabel('y (L)', fontsize='16')
+    ax3.set_ylabel('z (H)', fontsize='16')
     isentropes1 = ax3.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
     plt.colorbar(isentropes1)
+    ax3.plot(ypoints, zpos(ypoints), color='white', ls='dotted')
     for i in EFsolutions:
         ax3.plot(i[:,1], i[:,2])
 
     #Projection in x-y plane
     ax4 = fig1.add_subplot(224)
-    ax4.set_title('x-y plane', fontsize='14')
-    ax4.set_xlabel('x (L)', fontsize='14')
-    ax4.set_ylabel('y (L)', fontsize='14')
+    #ax4.set_title('x-y plane', fontsize='14')
+    ax4.set_xlabel('x (L)', fontsize='16')
+    ax4.set_ylabel('y (L)', fontsize='16')
     for i in EFsolutions:
         ax4.plot(i[:,0], i[:,1])
 
@@ -330,39 +411,52 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
 
     #Plot in the Wave frame
 
+    #Define grids for quiver plots
+    X, Y = np.meshgrid(xvalues, yvalues)
+    X1, Z1 = np.meshgrid(xvalues, zvalues)
+    Y2, Z2 = np.meshgrid(yvalues, zvalues)
+
     fig2 = plt.figure()
     plt.set_cmap('inferno')
-    fig2.suptitle('Wave frame', fontsize='16')
+    fig2.suptitle('Wave frame', fontsize='18')
     ax5 = fig2.add_subplot(221, projection = '3d')
-    ax5.set_xlabel('x (L)', fontsize='14')
-    ax5.set_ylabel('y (L)', fontsize='14')
-    ax5.set_zlabel('z (H)', fontsize='14')
+    ax5.set_xlabel('x (L)', fontsize='16')
+    ax5.set_ylabel('y (L)', fontsize='16')
+    ax5.set_zlabel('z (H)', fontsize='16')
     for i in WFsolutions:
         ax5.plot(i[:,0], i[:,1], i[:,2])
 
     #Projection in x-z plane
     ax6 = fig2.add_subplot(222)
-    ax6.set_title('x-z plane', fontsize='14')
-    ax6.set_xlabel('x (L)', fontsize='14')
-    ax6.set_ylabel('z (H)', fontsize='14')
+    #ax6.set_title('x-z plane', fontsize='14')
+    ax6.set_xlabel('x (L)', fontsize='16')
+    ax6.set_ylabel('z (H)', fontsize='16')
+    #psicontour1 = ax6.contourf(psiprime_matrix[:,yslice,:], origin='lower', extent=[xmin, xmax, zmin, zmax], aspect='auto', cmap='Greys')
+    #plt.colorbar(psicontour1)
+    Q1 = ax6.quiver(X1,Z1, velocityfield[:,yslice,:,0], 100*velocityfield[:,yslice,:,2], headlength=3, headaxislength=3)
     for i in WFsolutions:
         ax6.plot(i[:,0], i[:,2])
 
     #Projection in y-z plane
     ax7 = fig2.add_subplot(223)
-    ax7.set_title('y-z plane', fontsize='14')
-    ax7.set_xlabel('y (L)', fontsize='14')
-    ax7.set_ylabel('z (H)', fontsize='14')
+    #ax7.set_title('y-z plane', fontsize='14')
+    ax7.set_xlabel('y (L)', fontsize='16')
+    ax7.set_ylabel('z (H)', fontsize='16')
     isentropes2 = ax7.contourf(theta_matrix, origin='lower', extent=[ymin, ymax, zmin, zmax], aspect='auto')
     plt.colorbar(isentropes2)
+    ax7.plot(ypoints, zpos(ypoints), color='white', ls='dotted')
+    #ax7.plot(ypoints, zpos2(ypoints), color='white', ls='dotted')
     for i in WFsolutions:
         ax7.plot(i[:,1], i[:,2])
 
     #Projection in x-y plane
     ax8 = fig2.add_subplot(224)
-    ax8.set_title('x-y plane', fontsize='14')
-    ax8.set_xlabel('x (L)', fontsize='14')
-    ax8.set_ylabel('y (L)', fontsize='14')
+    #ax8.set_title('x-y plane', fontsize='14')
+    ax8.set_xlabel('x (L)', fontsize='16')
+    ax8.set_ylabel('y (L)', fontsize='16')
+    Q2 = ax8.quiver(X,Y, velocityfield[zslice,:,:,0], 10*velocityfield[zslice,:,:,1], headlength=3, headaxislength=3)
+    #psicontour2 = ax8.contourf(psiprime_matrix[zslice,:,:], origin='lower', extent=[xmin, xmax, ymin, ymax], aspect='auto', cmap='Greys')
+    #plt.colorbar(psicontour2)
     for i in WFsolutions:
         ax8.plot(i[:,0], i[:,1])
 
@@ -399,10 +493,10 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
         displacement2[i] = np.sqrt(meanxseparation2[i] + meanyseparation2[i] + meanzseparation2[i]) #Note lack of 'squares' as separations are already distances squared
 
     fig3 = plt.figure()
-    fig3.suptitle('Evolution of mean parcel displacement', fontsize='16')
+    #fig3.suptitle('Evolution of mean parcel displacement', fontsize='16')
     ax9 = fig3.add_subplot(111)
-    ax9.set_xlabel('time (T)', fontsize='14')
-    ax9.set_ylabel('displacement', fontsize='14')
+    ax9.set_xlabel('time (T)', fontsize='16')
+    ax9.set_ylabel('Mean parcel displacement', fontsize='16')
     ax9.plot(t[:], displacement[:], label='implicit midpoint')
     #ax9.plot(t, displacement2, label='lsoda')
     #ax9.legend(loc='upper left')
@@ -412,24 +506,24 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
     #Plot of oscillation growth with time
 
     fig4 = plt.figure()
-    fig4.suptitle('Growth of oscillations with time', fontsize='16')
+    #fig4.suptitle('Growth of oscillations with time', fontsize='16')
 
     ax10 = fig4.add_subplot(311)
-    ax10.set_title('Zonal extent', fontsize='14')
-    ax10.set_ylabel('(x-x0)^2', fontsize='14')
+    #ax10.set_title('Zonal extent', fontsize='14')
+    ax10.set_ylabel('(x-x0)^2', fontsize='16')
 
     ax11 = fig4.add_subplot(312)
-    ax11.set_title('Meridional extent', fontsize='14')
-    ax11.set_ylabel('(y-y0)^2', fontsize='14')
+    #ax11.set_title('Meridional extent', fontsize='14')
+    ax11.set_ylabel('(y-y0)^2', fontsize='16')
 
     ax12 = fig4.add_subplot(313)
-    ax12.set_title('Vertical extent', fontsize='14')
-    ax12.set_xlabel('time (T)', fontsize='14')
-    ax12.set_ylabel('(z-z0)^2', fontsize='14')
+    #ax12.set_title('Vertical extent', fontsize='14')
+    ax12.set_xlabel('time (T)', fontsize='16')
+    ax12.set_ylabel('(z-z0)^2', fontsize='16')
 
-    ax10.plot(t[:-1], meanxseparation[:-1], label='implicit midpoint')
-    ax11.plot(t[:-1], meanyseparation[:-1], label='implicit midpoint')
-    ax12.plot(t[:-1], meanzseparation[:-1], label='implicit midpoint')
+    ax10.plot(t[:], meanxseparation[:], label='implicit midpoint')
+    ax11.plot(t[:], meanyseparation[:], label='implicit midpoint')
+    ax12.plot(t[:], meanzseparation[:], label='implicit midpoint')
 
     #ax10.plot(t, meanxseparation2, label='lsoda')
     #ax11.plot(t, meanyseparation2, label='lsoda')
@@ -442,17 +536,17 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
     #WF isentropic surface projection figure
 
     fig5 = plt.figure()
-    fig5.suptitle('Relative motion within surface at half-slope to isentropes', fontsize='16')
+    #fig5.suptitle('Relative motion within surface at half-slope to isentropes', fontsize='16')
     ax13 = fig5.add_subplot(111, projection = '3d')
-    ax13.set_xlabel('x (L)', fontsize='14')
-    ax13.set_ylabel('y (L)', fontsize='14')
-    ax13.set_zlabel('z (H)', fontsize='14')
+    ax13.set_xlabel('x (L)', fontsize='16')
+    ax13.set_ylabel('y (L)', fontsize='16')
+    ax13.set_zlabel('z (H)', fontsize='16')
     for j in projected_solutions_i:
         ax13.plot(j[:,0], j[:,1], j[:,2])
 
-    times = np.arange(0,len(time_points),50)
+    times = np.arange(0,len(time_points),100)
 
-    #Add a dot along trajectories every 50 timesteps to indicate time evolution
+    #Add a dot along trajectories every 100 timesteps to indicate time evolution
     for i in range(len(times)):
         for j in projected_solutions_i:
             ax13.scatter(j[times[i],0], j[times[i],1], j[times[i],2], marker='o', c='black', s=8)
@@ -472,8 +566,8 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
 
     fig6 = plt.figure()
     ax14 = fig6.add_subplot(111)
-    ax14.set_xlabel('time (T)', fontsize='14')
-    ax14.set_ylabel('Absolute theta (K)', fontsize='14')
+    ax14.set_xlabel('time (T)', fontsize='16')
+    ax14.set_ylabel('Potential temperature (K)', fontsize='16')
     ax14.plot(t[:], absolutetheta_a[:], color='black', label='implicit midpoint')
     #ax14.plot(t, absolutetheta_a2, color='blue', label='lsoda')
     ax14.axhline(y=absolutetheta_a[0], color='black',ls='dotted')
@@ -485,4 +579,4 @@ def main(start, stop, xpos=0, ypos=0.5, zpos=0.5):
 
 #Run the programme
 
-main(0, 30, xpos=0, ypos=0.5, zpos=0.5)
+main(start=15, stop=60, xpos=0, ypos=0.2)
