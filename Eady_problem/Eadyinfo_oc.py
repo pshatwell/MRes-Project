@@ -11,23 +11,27 @@ import cmath
 #Oceanic parameters
 f0 = -1e-4 #(s^-1) f-plane approximation (southern hemisphere)
 N = 2e-3 #(s^-1) (King et al. 2012, JGR) buoyancy frequency (for SO, assuming uniform stratification)
-H = 1e3 #(m) height of upper boundary, meant to represent typical vertical extent of an oceanic eddy
-#U_0 = 0.5 #(ms^(-1)) REFERENCE? mean flow zonal velocity magnitude at upper boundary
-U_0 = 0.1 #(ms^(-1)) considering difference in mean zonal flow from MITgcm simulations in first 1km depth
+#H = 1e3 #(m) height of upper boundary, meant to represent typical vertical extent of an oceanic eddy
+H = 2985.
+U_0 = 0.3 #(ms^(-1)) REFERENCE? mean flow zonal velocity magnitude at upper boundary
+#U_0 = 0.1 #(ms^(-1)) considering difference in mean zonal flow from MITgcm simulations in first 1km depth
 Lambda = U_0/H #(s^-1) uniform velocity shear in vertical direction
 L = np.abs((N*H)/f0) #(m) typical length scale given by deformation radius
 T = L/U_0 #(s) Eady timescale (about 2 days)
 #k = 1./L  #(m^-1) zonal wavenumber
-l = (np.pi)/(2*L) #(m^-1) meridional wavenumber, defined for zonal channel
+#l = (np.pi)/(2*L) #(m^-1) meridional wavenumber, defined for zonal channel
+l = (np.pi)/(8*L)
 #mu = L*np.sqrt(k**2 + l**2) #dimensionless parameter governing vertical wave struture
-mu = 2.01 #Force mu to be this value. mu_crit = 2.399, mu_max = 1.61
+
+#See APEconversion.py scripts for maximising values of mu
+mu = 1.61 #Force mu to be this value. mu_crit = 2.399, mu_max (for narrow channel, l=pi/2L) = 2.01, mu_max (for wide channel, l=0) = 1.61
 k = np.sqrt(((mu**2)/(L*L)) - l*l) #Choose k based on chosen value of mu
 
-
-alpha = 2e-4 #(K^-1) REFERENCE? thermal expansion coefficient
-g = 9.8 #(ms^(-2)) gravitational acceleration
-rho_0 = 1000 #(kg/m^3) REFERENCE? density of seawater
-c_p = 4000 #(J/kg/K) REFERENCE? specific heat capacity of seawater
+#Values from STDOUT file for MITgcm channel simulation
+alpha = 2e-4 #(K^-1) thermal expansion coefficient
+g = 9.81 #(ms^(-2)) gravitational acceleration
+rho_0 = 999.8 #(kg/m^3) density of seawater
+c_p = 3994 #(J/kg/K) specific heat capacity of seawater
 
 #Phase speed (ms^(-1)) (taking positive root for growth), Vallis 6.86
 c = U_0/2. + (U_0/mu)*cmath.sqrt((mu/2. - (1./np.tanh(mu/2.)))*(mu/2. - np.tanh(mu/2.)))
@@ -108,3 +112,39 @@ def WForiginvprime(y,z,t):
 
 def WForiginwprime(y,z,t):
     return -(T/H)*(f0/(N**2))*((k*(c.real - Lambda*H*z)*dphi_idz(z) + sigma*dphi_rdz(z))*np.cos(l*L*y)*np.exp(sigma*T*t) - Lambda*(L/T)*WForiginvprime(y,z,t))
+
+###############################################################################################
+
+print 'U_0 is:', U_0
+print 'Lambda is:', Lambda
+
+print '\nH is', H
+print 'L (deformation radius) (m) is', L
+print 'T is (seconds)', T
+print 'T is (days)', T/(86400.)
+
+print '\nk (/m) is', k
+print 'l (/m) is', l
+print 'mu is', mu
+
+print '\nc (m/s) is:', c
+print 'c^2 is:', np.abs(c)**2
+print 'Real part of c is:', c.real
+print 'sigma is:', sigma
+
+print '\ninitial uprime amplitude (m/s) is:', l
+print 'initial vprime (m/s) amplitude is:', k
+print 'initial wprime (m/s) amplitude is:', -(f0/(N**2))*Lambda*k
+
+print '\ntime (s) when vprime amplitude is equal to U_0 is:', (1./sigma)*np.log(U_0/(k))
+print 'in periods of T, that is:', ((1./sigma)*np.log(U_0/(k)))/T
+
+print '\nMax Eady growth rate (/s) is approximately:', (-0.31*Lambda*f0)/(N)
+print 'Which corresponds to a timescale (s) of:', N/(-0.31*Lambda*f0)
+print 'in days, that is:', N/(-0.31*Lambda*f0*86400.)
+print 'in periods of T, that is:', N/(-0.31*Lambda*f0*T)
+
+print '\nLengthscale of maximum instability (3.9*L) (m) is approximately:', 3.9*L
+
+print '\nRossby number is:', U_0/np.abs(f0*L)
+print 'Richardson number is:', (N**2)/(Lambda**2)

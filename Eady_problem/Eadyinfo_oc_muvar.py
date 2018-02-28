@@ -10,13 +10,16 @@ import cmath
 #Oceanic parameters
 f0 = -1e-4 #(s^-1) f-plane approximation (southern hemisphere)
 N = 2e-3 #(s^-1) (King et al. 2012, JGR) buoyancy frequency (for SO, assuming uniform stratification)
-H = 1e3 #(m) height of upper boundary, meant to represent typical vertical extent of an oceanic eddy
-#U_0 = 0.5 #(ms^(-1)) REFERENCE? mean flow zonal velocity magnitude at upper boundary
-U_0 = 0.1 #(ms^(-1)) considering difference in mean zonal flow from MITgcm simulations in first 1km depth
+#H = 1e3 #(m) height of upper boundary, meant to represent typical vertical extent of an oceanic eddy
+H = 3e3
+U_0 = 0.3 #(ms^(-1)) REFERENCE? mean flow zonal velocity magnitude at upper boundary
+#U_0 = 0.1 #(ms^(-1)) considering difference in mean zonal flow from MITgcm simulations in first 1km depth
 Lambda = U_0/H #(s^-1) uniform velocity shear in vertical direction
 L = np.abs((N*H)/f0) #(m) typical length scale given by deformation radius
 T = L/U_0 #(s) Eady timescale (about 2 days)
-l = (np.pi)/(2*L) #(m^-1) meridional wavenumber, defined for zonal channel
+#k = 1./L  #(m^-1) zonal wavenumber
+#l = (np.pi)/(2*L) #(m^-1) meridional wavenumber, defined for zonal channel
+l = (np.pi)/(8*L)
 
 alpha = 2e-4 #(K^-1) REFERENCE? thermal expansion coefficient
 g = 9.8 #(ms^(-2)) gravitational acceleration

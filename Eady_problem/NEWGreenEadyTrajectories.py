@@ -579,4 +579,4 @@ def main(start, stop, xpos=0, ypos=0.5):
 
 #Run the programme
 
-main(start=15, stop=60, xpos=0, ypos=0.2)
+main(start=15, stop=50, xpos=0, ypos=0.2)
